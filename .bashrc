@@ -1,12 +1,18 @@
+# ~/.bashrc: executed by bash(1) for non-login shells.
+# see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
+# for examples
+
 # If not running interactively, don't do anything
 [ -z "$PS1" ] && return
 
-# don't put duplicate lines in the history.
+# don't put duplicate lines in the history. See bash(1) for more options
+# ... or force ignoredups and ignorespace
 HISTCONTROL=ignoredups:ignorespace
 
 # append to the history file, don't overwrite it
 shopt -s histappend
 
+# for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
 # http://stackoverflow.com/questions/9457233/unlimited-bash-history
 HISTSIZE=
 HISTFILESIZE=
@@ -20,41 +26,95 @@ shopt -s checkwinsize
 # make less more friendly for non-text input files, see lesspipe(1)
 [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
 
+# set variable identifying the chroot you work in (used in the prompt below)
+if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
+  debian_chroot=$(cat /etc/debian_chroot)
+fi
+
+# set a fancy prompt (non-color, unless we know we "want" color)
+case "$TERM" in
+  xterm-color|*-256color) color_prompt=yes;;
+esac
+
+# uncomment for a colored prompt, if the terminal has the capability; turned
+# off by default to not distract the user: the focus in a terminal window
+# should be on the output of commands, not on the prompt
+force_color_prompt=yes
+
+if [ -n "$force_color_prompt" ]; then
+  if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
+  	# We have color support; assume it's compliant with Ecma-48
+  	# (ISO/IEC-6429). (Lack of such support is extremely rare, and such
+  	# a case would tend to support setf rather than setaf.)
+  	color_prompt=yes
+  else
+  	color_prompt=
+  fi
+fi
+
+if [ "$color_prompt" = yes ]; then
+  PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+else
+  PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+fi
+unset color_prompt force_color_prompt
+
+# If this is an xterm set the title to user@host:dir
+case "$TERM" in
+xterm*|rxvt*)
+  PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+  ;;
+*)
+  ;;
+esac
+
 # enable color support of ls and also add handy aliases
 if [ -x /usr/bin/dircolors ]; then
-    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
-    alias ls='ls --color=auto'
-    alias dir='dir --color=auto'
-    alias vdir='vdir --color=auto'
+  test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+  alias ls='ls --color=auto'
+  alias dir='dir --color=auto'
+  alias vdir='vdir --color=auto'
 
-    alias grep='grep --color=auto'
-    alias fgrep='fgrep --color=auto'
-    alias egrep='egrep --color=auto'
+  alias grep='grep --color=auto'
+  alias fgrep='fgrep --color=auto'
+  alias egrep='egrep --color=auto'
 fi
 
 # some more ls aliases
-alias ll='ls -alhF'
+alias ll='ls -alF'
 alias la='ls -A'
 alias l='ls -CF'
 
+# Add an "alert" alias for long running commands.  Use like so:
+#   sleep 10; alert
+alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
+
 # Alias definitions.
+# You may want to put all your additions into a separate file like
+# ~/.bash_aliases, instead of adding them here directly.
+# See /usr/share/doc/bash-doc/examples in the bash-doc package.
+
 if [ -f ~/.bash_aliases ]; then
-    . ~/.bash_aliases
+  . ~/.bash_aliases
 fi
 
-# Bash Completion
-if [ -f /etc/bash_completion ]; then
+# enable programmable completion features (you don't need to enable
+# this, if it's already enabled in /etc/bash.bashrc and /etc/profile
+# sources /etc/bash.bashrc).
+if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
   . /etc/bash_completion
 fi
 
 # Git Completion
-if [ -f ~/git-completion.bash ]; then
-	source ~/git-completion.bash
+# https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash
+if [ -f ~/.git-completion.bash ]; then
+	source ~/.git-completion.bash
 fi
 
 # Git Prompt
-if [ -f ~/git-prompt.sh ]; then
-	source ~/git-prompt.sh
+# https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh
+if [ -f ~/.git-prompt.sh ]; then
+	source ~/.git-prompt.sh
 fi
 
 ################################################################
@@ -146,9 +206,9 @@ export PS1="\t \[$Red\]\u\[$Color_Off\]@\[$Green\]\h\[$Color_Off\]:\$(pwd)\[$IBl
 ## PATH
 ################################################################
 
-#export PATH=$PATH:/home/java/jdk/bin/
+#export PATH=$PATH:/code/java/jdk/bin/
 
-################################################################
+#################################################################
 ## Timezone
 ################################################################
 
@@ -166,19 +226,27 @@ export NVM_DIR="$HOME/.nvm"
 ## Aliases
 ################################################################
 
+alias ..='cd ..'
+
 alias h='history'
 alias j='jobs -l'
-
-alias box1='ssh box1.luastoned.com -p 443'
-alias box2='ssh box2.luastoned.com -p 443'
-alias box3='ssh box3.luastoned.com -p 443'
 
 alias list_size='du -chs *'
 alias list_sort='du -chs * | sort -h'
 
-alias pack_targz='tar czvf'
-alias unpack_targz='tar xzvf'
-alias unpack_tarbz2='tar jxvf'
+alias pack_tar='tar -vcf'
+alias pack_targz='tar -vczf'
+alias pack_tarxz='tar -vcJf'
+alias pack_tarbz2='tar -vcjf'
+alias pack_zip='zip -r'
+alias pack_bz2='bzip2 --keep'
+
+alias unpack_tar='tar -vxf'
+alias unpack_targz='tar -vxzf'
+alias unpack_tarxz='tar -vxJf'
+alias unpack_tarbz2='tar -vxjf'
+alias unpack_zip='unzip'
+alias unpack_bz2='bunzip2 --keep --force'
 
 alias check_ports1='netstat -ntap'
 alias check_ports2='netstat -ntl'
@@ -188,6 +256,7 @@ alias route_usb='route add default gw 192.168.7.1'
 alias time_set='dpkg-reconfigure tzdata'
 alias time_fix='ntpdate -u ntp.ubuntu.com'
 
+alias symlink='ln -sf'
 alias wanip='dig +short myip.opendns.com @resolver1.opendns.com'
 
 alias ram='top -n 1 | grep "Mem"'
@@ -197,26 +266,3 @@ alias top_cpu='top -o %CPU'
 alias top_ram='top -o %MEM'
 
 alias lua='rlwrap luajit -l essentials'
-
-alias ..='cd ..'
-alias www='cd /var/www'
-
-alias a2s='/etc/init.d/apache2 stop'
-alias a2r='a2s && sleep 2 && /etc/init.d/apache2 start'
-
-alias n2s='/etc/init.d/nginx stop'
-alias n2r='n2s && sleep 2 && /etc/init.d/nginx start'
-
-alias p2s='/etc/init.d/postfix stop'
-alias p2r='p2s && sleep 2 && /etc/init.d/postfix start'
-
-alias i2s='/etc/init.d/icecast2 stop'
-alias i2r='i2r && sleep 2 && /etc/init.d/icecast2 start'
-
-alias f2s='/etc/init.d/proftpd stop'
-alias f2r='f2s && sleep 2 && /etc/init.d/proftpd start'
-
-alias w2s='/etc/webmin/stop'
-alias w2r='w2s && sleep 2 && /etc/webmin/start'
-
-# Installation: pm2 completion >> ~/.bashrc  (or ~/.zshrc)
