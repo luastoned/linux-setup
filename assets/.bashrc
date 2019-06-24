@@ -12,7 +12,6 @@ HISTCONTROL=ignoredups:ignorespace
 # append to the history file, don't overwrite it
 shopt -s histappend
 
-# for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
 # http://stackoverflow.com/questions/9457233/unlimited-bash-history
 HISTSIZE=
 HISTFILESIZE=
@@ -27,13 +26,13 @@ shopt -s checkwinsize
 [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
 
 # set variable identifying the chroot you work in (used in the prompt below)
-if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
+if [ -z "$debian_chroot" ] && [ -r /etc/debian_chroot ]; then
   debian_chroot=$(cat /etc/debian_chroot)
 fi
 
 # set a fancy prompt (non-color, unless we know we "want" color)
 case "$TERM" in
-  xterm-color|*-256color) color_prompt=yes;;
+  xterm-color) color_prompt=yes ;;
 esac
 
 # uncomment for a colored prompt, if the terminal has the capability; turned
@@ -43,12 +42,12 @@ force_color_prompt=yes
 
 if [ -n "$force_color_prompt" ]; then
   if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
-  	# We have color support; assume it's compliant with Ecma-48
-  	# (ISO/IEC-6429). (Lack of such support is extremely rare, and such
-  	# a case would tend to support setf rather than setaf.)
-  	color_prompt=yes
+    # We have color support; assume it's compliant with Ecma-48
+    # (ISO/IEC-6429). (Lack of such support is extremely rare, and such
+    # a case would tend to support setf rather than setaf.)
+    color_prompt=yes
   else
-  	color_prompt=
+    color_prompt=
   fi
 fi
 
@@ -61,11 +60,11 @@ unset color_prompt force_color_prompt
 
 # If this is an xterm set the title to user@host:dir
 case "$TERM" in
-xterm*|rxvt*)
-  PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
-  ;;
-*)
-  ;;
+  xterm*|rxvt*)
+    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+    ;;
+  *)
+    ;;
 esac
 
 # enable color support of ls and also add handy aliases
@@ -84,10 +83,6 @@ fi
 alias ll='ls -alF'
 alias la='ls -A'
 alias l='ls -CF'
-
-# Add an "alert" alias for long running commands.  Use like so:
-#   sleep 10; alert
-alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
 
 # Alias definitions.
 # You may want to put all your additions into a separate file like
@@ -108,13 +103,13 @@ fi
 # Git Completion
 # https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash
 if [ -f ~/.git-completion.bash ]; then
-	source ~/.git-completion.bash
+  source ~/.git-completion.bash
 fi
 
 # Git Prompt
 # https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh
 if [ -f ~/.git-prompt.sh ]; then
-	source ~/.git-prompt.sh
+  source ~/.git-prompt.sh
 fi
 
 ################################################################
@@ -226,6 +221,7 @@ export NVM_DIR="$HOME/.nvm"
 ## Aliases
 ################################################################
 
+## Command Helpers
 alias ..='cd ..'
 
 alias h='history'
@@ -234,6 +230,41 @@ alias j='jobs -l'
 alias list_size='du -chs *'
 alias list_sort='du -chs * | sort -h'
 
+alias symlink='ln -sf'
+
+## Git
+alias gc='git commit'
+alias gco='git checkout'
+alias gs='git status'
+alias gpp='git pull && git push'
+alias gid='git rev-parse --short HEAD'
+alias grh='git reset --hard HEAD'
+
+function gc {
+  git commit -m "$1"
+}
+
+## Docker
+alias dc='docker-compose'
+export DOCKER_HOST=localhost:2375
+
+alias docker_cleanup_images='docker image prune'
+alias docker_cleanup_system='docker system prune'
+
+alias docker_remove_dangling_images='docker rmi $(docker images -f "dangling=true" -q)'
+alias docker_remove_exited_containers='docker rm -v $(docker ps -a -q -f status=exited)'
+
+## Docker Containers
+alias portainer='docker pull portainer/portainer:latest && \
+  docker run \
+  --rm \
+  -d \
+  --name portainer \
+  -p 127.0.0.1:7020:9000 \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v portainer_data:/data portainer/portainer'
+
+## Packing
 alias pack_tar='tar -vcf'
 alias pack_targz='tar -vczf'
 alias pack_tarxz='tar -vcJf'
@@ -241,6 +272,7 @@ alias pack_tarbz2='tar -vcjf'
 alias pack_zip='zip -r'
 alias pack_bz2='bzip2 --keep'
 
+## Unpacking
 alias unpack_tar='tar -vxf'
 alias unpack_targz='tar -vxzf'
 alias unpack_tarxz='tar -vxJf'
@@ -248,21 +280,38 @@ alias unpack_tarbz2='tar -vxjf'
 alias unpack_zip='unzip'
 alias unpack_bz2='bunzip2 --keep --force'
 
+## Ports
 alias check_ports1='netstat -ntap'
 alias check_ports2='netstat -ntl'
 alias check_ports_pid='netstat -lp --inet'
 
+## Raspberry Pi
 alias route_usb='route add default gw 192.168.7.1'
 alias time_set='dpkg-reconfigure tzdata'
-alias time_fix='ntpdate -u ntp.ubuntu.com'
-
-alias symlink='ln -sf'
+alias time_fix='ntpdate -u time.cloudflare.com'
 alias wanip='dig +short myip.opendns.com @resolver1.opendns.com'
 
+## Status
 alias ram='top -n 1 | grep "Mem"'
 alias cpu='top -n 1 | grep "Cpu"'
 alias topn='top -n 1'
 alias top_cpu='top -o %CPU'
 alias top_ram='top -o %MEM'
 
+## Misc
 alias lua='rlwrap luajit -l essentials'
+
+## WSL
+# mount /mnt/c to /c if not already done
+# if [ ! -d "/c" ] || [ ! "$(ls -A /c)" ]; then
+#   # echo "Requiring root password to $(tput setaf 6)mount --bind /mnt/c /c$(tput sgr 0)"
+#   # sudo mkdir -p /c
+#   # sudo mount --bind /mnt/c /c
+#   mkdir -p /c
+#   mount --bind /mnt/c /c
+# fi
+
+# Change from /mnt/c/... to /c/...
+# if [ "$(pwd | cut -c -7)" == "/mnt/c/" ]; then
+# 	cd "$(pwd | cut -c 5-)"
+# fi
