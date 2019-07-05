@@ -1,3 +1,5 @@
+#!/bin/bash
+
 ## move to assets
 cd assets
 

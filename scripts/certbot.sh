@@ -1,3 +1,5 @@
+#!/bin/bash
+
 ## dependencies
 sudo apt install software-properties-common -y
 

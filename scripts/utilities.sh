@@ -1,3 +1,5 @@
+#!/bin/bash
+
 ## install essentials
 sudo apt install curl git rlwrap -y
 
