@@ -1,20 +1,23 @@
 ## update
-bash scripts/update.sh
+/bin/sh scripts/update.sh
 
 ## bashrc
-bash scripts/bashrc.sh
+/bin/sh scripts/bashrc.sh
 
 ## certbot
-bash scripts/certbot.sh
+/bin/sh scripts/certbot.sh
 
 ## docker
-bash scripts/docker.sh
+/bin/sh scripts/docker.sh
 
 ## node
-bash scripts/node.sh
+/bin/sh scripts/node.sh
 
 ## utilities
-bash scripts/utilities.sh
+/bin/sh scripts/utilities.sh
+
+## ssh keys
+/bin/sh scripts/ssh-keys.sh
 
 ## inotify watchers
-bash scripts/inotify-watchers.sh
+/bin/sh scripts/inotify-watchers.sh
