@@ -240,8 +240,12 @@ alias gpp='git pull && git push'
 alias gid='git rev-parse --short HEAD'
 alias grh='git reset --hard HEAD'
 
-function gc {
+function gc() {
   git commit -m "$1"
+}
+
+function git-recursive() {
+  find . -type d -name .git -exec sh -c "cd \"{}\"/../ && pwd && git $1" \;
 }
 
 ## Docker
@@ -260,7 +264,7 @@ alias portainer='docker pull portainer/portainer:latest && \
   --rm \
   -d \
   --name portainer \
-  -p 127.0.0.1:7020:9000 \
+  -p 9000:9000 \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v portainer_data:/data portainer/portainer'
 
@@ -314,4 +318,8 @@ alias lua='rlwrap luajit -l essentials'
 # Change from /mnt/c/... to /c/...
 # if [ "$(pwd | cut -c -7)" == "/mnt/c/" ]; then
 # 	cd "$(pwd | cut -c 5-)"
+# fi
+
+# if [ "$(umask)" = "0000" ]; then
+#   umask 0022
 # fi
