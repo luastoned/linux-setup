@@ -250,7 +250,8 @@ function git-recursive() {
 
 ## Docker
 alias dc='docker-compose'
-export DOCKER_HOST=localhost:2375
+# export DOCKER_HOST=localhost:2375
+export DOCKER_HOST=unix:///var/run/docker.sock
 
 alias docker_cleanup_images='docker image prune'
 alias docker_cleanup_system='docker system prune'
@@ -259,14 +260,16 @@ alias docker_remove_dangling_images='docker rmi $(docker images -f "dangling=tru
 alias docker_remove_exited_containers='docker rm -v $(docker ps -a -q -f status=exited)'
 
 ## Docker Containers
-alias portainer='docker pull portainer/portainer:latest && \
+alias portainer='docker pull portainer/portainer-ce:latest && \
   docker run \
-  --rm \
   -d \
+  --rm \
   --name portainer \
   -p 9000:9000 \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  -v portainer_data:/data portainer/portainer'
+  -v portainer_data:/data portainer/portainer-ce'
+# --rm
+# --restart unless-stopped
 
 ## Packing
 alias pack_tar='tar -vcf'
@@ -322,4 +325,12 @@ alias lua='rlwrap luajit -l essentials'
 
 # if [ "$(umask)" = "0000" ]; then
 #   umask 0022
+# fi
+
+# if [ "$(pwd)" == "/root" ]; then
+#   cd "/code"
+# fi
+
+# if [ -z "$(docker ps -a | grep portainer)" ]; then
+#   portainer
 # fi
