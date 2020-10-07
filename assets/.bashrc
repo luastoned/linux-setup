@@ -119,7 +119,7 @@ if [ -f ~/.kube-ps1.sh ]; then
 
   KUBE_PS1_PREFIX=' ('
   KUBE_PS1_CTX_COLOR=yellow
-  KUBE_PS1_SYMBOL_ENABLE=true
+  KUBE_PS1_SYMBOL_ENABLE=false
 fi
 
 ################################################################
