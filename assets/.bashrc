@@ -112,6 +112,12 @@ if [ -f ~/.git-prompt.sh ]; then
   source ~/.git-prompt.sh
 fi
 
+# Kube
+# https://raw.githubusercontent.com/jonmosco/kube-ps1/master/kube-ps1.sh
+if [ -f ~/.kube-ps1.sh ]; then
+  source ~/.kube-ps1.sh
+fi
+
 ################################################################
 ## Colors
 ################################################################
@@ -195,7 +201,7 @@ On_IWhite='\e[0;107m'   # White
 
 MEM_FREE="$(($(sed -n 's/MemFree:[\t ]\+\([0-9]\+\) kB/\1/p' /proc/meminfo) / 1024))"
 MEM_TOTAL="$(($(sed -n 's/MemTotal:[\t ]\+\([0-9]\+\) kB/\1/p' /proc/meminfo) / 1024))"
-export PS1="\t \[$Red\]\u\[$Color_Off\]@\[$Green\]\h\[$Color_Off\]:\$(pwd)\[$IBlue\]\$(__git_ps1) \[$Red\]>\[$Color_Off\] "
+export PS1="\t \[$Red\]\u\[$Color_Off\]@\[$Green\]\h\[$Color_Off\]:\$(pwd)\[$IBlue\]\$(__git_ps1)\$(kube_ps1) \[$Red\]>\[$Color_Off\] "
 
 ################################################################
 ## PATH
@@ -220,6 +226,8 @@ export NVM_DIR="$HOME/.nvm"
 ################################################################
 ## Aliases
 ################################################################
+
+export TERM=xterm-256color
 
 ## Command Helpers
 alias ..='cd ..'
