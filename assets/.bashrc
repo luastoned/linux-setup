@@ -116,14 +116,28 @@ fi
 # https://raw.githubusercontent.com/jonmosco/kube-ps1/master/kube-ps1.sh
 if [ -f ~/.kube-ps1.sh ]; then
   source ~/.kube-ps1.sh
+
+  KUBE_PS1_PREFIX=' ('
+  KUBE_PS1_CTX_COLOR=yellow
+  KUBE_PS1_SYMBOL_ENABLE=true
 fi
 
 ################################################################
 ## Colors
 ################################################################
 
+# https://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux
+
 # Reset
-Color_Off='\e[0m'       # Text Reset
+Reset='\e[0m'           # Text Reset
+
+# Formatting
+Bold='\e[1m'            # Bold/Bright
+Dim='\e[2'              # Dim
+Underlined='\e[4m'      # Underlined
+Blink='\e[5m'           # Blink
+Invert='\e[7'           # Invert/Reverse the foreground and background colors
+Hidden='\e[8m'          # Hidden
 
 # Regular Colors
 Black='\e[0;30m'        # Black
@@ -201,7 +215,7 @@ On_IWhite='\e[0;107m'   # White
 
 MEM_FREE="$(($(sed -n 's/MemFree:[\t ]\+\([0-9]\+\) kB/\1/p' /proc/meminfo) / 1024))"
 MEM_TOTAL="$(($(sed -n 's/MemTotal:[\t ]\+\([0-9]\+\) kB/\1/p' /proc/meminfo) / 1024))"
-export PS1="\t \[$Red\]\u\[$Color_Off\]@\[$Green\]\h\[$Color_Off\]:\$(pwd)\[$IBlue\]\$(__git_ps1)\$(kube_ps1) \[$Red\]>\[$Color_Off\] "
+export PS1="$Bold\t$Reset $Red\u$Reset@$Green\h$Reset:\$(pwd)$IBlue\$(__git_ps1)$Reset\$(kube_ps1) $Red>$Reset "
 
 ################################################################
 ## PATH
