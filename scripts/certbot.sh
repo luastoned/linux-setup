@@ -10,4 +10,4 @@ if [[ "$(lsb_release -sr)" != "20.04" ]]; then
 fi
 
 ## install certbot
-sudo apt install certbot python-certbot-nginx -y
+sudo apt install certbot python3-certbot-nginx -y
