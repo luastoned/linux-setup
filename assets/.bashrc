@@ -117,9 +117,14 @@ fi
 if [ -f ~/.kube-ps1.sh ]; then
   source ~/.kube-ps1.sh
 
+  function get_cluster_short {
+    echo "$1" | cut -d _ -f 4
+  }
+
   KUBE_PS1_PREFIX=' ('
   KUBE_PS1_CTX_COLOR=yellow
   KUBE_PS1_SYMBOL_ENABLE=false
+  # KUBE_PS1_CLUSTER_FUNCTION=get_cluster_short
 fi
 
 ################################################################
@@ -127,6 +132,67 @@ fi
 ################################################################
 
 # https://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux
+
+### Colors to Vars ### {{{
+## https://notabug.org/demure/dotfiles/src/master/subbash/prompt
+## Inspired by http://wiki.archlinux.org/index.php/Color_Bash_Prompt#List_of_colors_for_prompt_and_Bash
+## Terminal Control Escape Sequences: http://www.termsys.demon.co.uk/vtansi.htm
+## Consider using some of: https://gist.github.com/bcap/5682077#file-terminal-control-sh
+## Can unset with `unset -v {,B,U,I,BI,On_,On_I}{Bla,Red,Gre,Yel,Blu,Pur,Cya,Whi} RCol`
+RCol='\[\e[0m\]'  # Text Reset
+
+# Regular           Bold                 Underline            High Intensity       BoldHigh Intensity    Background       High Intensity Backgrounds
+Bla='\[\e[0;30m\]'; BBla='\[\e[1;30m\]'; UBla='\[\e[4;30m\]'; IBla='\[\e[0;90m\]'; BIBla='\[\e[1;90m\]'; On_Bla='\e[40m'; On_IBla='\[\e[0;100m\]';
+Red='\[\e[0;31m\]'; BRed='\[\e[1;31m\]'; URed='\[\e[4;31m\]'; IRed='\[\e[0;91m\]'; BIRed='\[\e[1;91m\]'; On_Red='\e[41m'; On_IRed='\[\e[0;101m\]';
+Gre='\[\e[0;32m\]'; BGre='\[\e[1;32m\]'; UGre='\[\e[4;32m\]'; IGre='\[\e[0;92m\]'; BIGre='\[\e[1;92m\]'; On_Gre='\e[42m'; On_IGre='\[\e[0;102m\]';
+Yel='\[\e[0;33m\]'; BYel='\[\e[1;33m\]'; UYel='\[\e[4;33m\]'; IYel='\[\e[0;93m\]'; BIYel='\[\e[1;93m\]'; On_Yel='\e[43m'; On_IYel='\[\e[0;103m\]';
+Blu='\[\e[0;34m\]'; BBlu='\[\e[1;34m\]'; UBlu='\[\e[4;34m\]'; IBlu='\[\e[0;94m\]'; BIBlu='\[\e[1;94m\]'; On_Blu='\e[44m'; On_IBlu='\[\e[0;104m\]';
+Pur='\[\e[0;35m\]'; BPur='\[\e[1;35m\]'; UPur='\[\e[4;35m\]'; IPur='\[\e[0;95m\]'; BIPur='\[\e[1;95m\]'; On_Pur='\e[45m'; On_IPur='\[\e[0;105m\]';
+Cya='\[\e[0;36m\]'; BCya='\[\e[1;36m\]'; UCya='\[\e[4;36m\]'; ICya='\[\e[0;96m\]'; BICya='\[\e[1;96m\]'; On_Cya='\e[46m'; On_ICya='\[\e[0;106m\]';
+Whi='\[\e[0;37m\]'; BWhi='\[\e[1;37m\]'; UWhi='\[\e[4;37m\]'; IWhi='\[\e[0;97m\]'; BIWhi='\[\e[1;97m\]'; On_Whi='\e[47m'; On_IWhi='\[\e[0;107m\]';
+### End Color Vars ### }}}
+
+## Colours and font styles
+## Syntax: echo -e "${FOREGROUND_COLOUR}${BACKGROUND_COLOUR}${STYLE}Hello world!${RESET_ALL}"
+
+# Escape sequence and resets
+ESC_SEQ="\x1b["
+RESET_ALL="${ESC_SEQ}0m"
+RESET_BOLD="${ESC_SEQ}21m"
+RESET_UL="${ESC_SEQ}24m"
+
+# Foreground colours
+FG_BLACK="${ESC_SEQ}30;"
+FG_RED="${ESC_SEQ}31;"
+FG_GREEN="${ESC_SEQ}32;"
+FG_YELLOW="${ESC_SEQ}33;"
+FG_BLUE="${ESC_SEQ}34;"
+FG_MAGENTA="${ESC_SEQ}35;"
+FG_CYAN="${ESC_SEQ}36;"
+FG_WHITE="${ESC_SEQ}37;"
+FG_BR_BLACK="${ESC_SEQ}90;"
+FG_BR_RED="${ESC_SEQ}91;"
+FG_BR_GREEN="${ESC_SEQ}92;"
+FG_BR_YELLOW="${ESC_SEQ}93;"
+FG_BR_BLUE="${ESC_SEQ}94;"
+FG_BR_MAGENTA="${ESC_SEQ}95;"
+FG_BR_CYAN="${ESC_SEQ}96;"
+FG_BR_WHITE="${ESC_SEQ}97;"
+
+# Background colours (optional)
+BG_BLACK="40;"
+BG_RED="41;"
+BG_GREEN="42;"
+BG_YELLOW="43;"
+BG_BLUE="44;"
+BG_MAGENTA="45;"
+BG_CYAN="46;"
+BG_WHITE="47;"
+
+# Font styles
+FS_REG="0m"
+FS_BOLD="1m"
+FS_UL="4m"
 
 # Reset
 Reset='\e[0m'           # Text Reset
@@ -190,7 +256,7 @@ ICyan='\e[0;96m'        # Cyan
 IWhite='\e[0;97m'       # White
 
 # Bold High Intensity
-BIBlack='\e[1;90m'      # Black
+BIBlack='\e[1;90m';   # Black
 BIRed='\e[1;91m'        # Red
 BIGreen='\e[1;92m'      # Green
 BIYellow='\e[1;93m'     # Yellow
@@ -200,14 +266,7 @@ BICyan='\e[1;96m'       # Cyan
 BIWhite='\e[1;97m'      # White
 
 # High Intensity backgrounds
-On_IBlack='\e[0;100m'   # Black
-On_IRed='\e[0;101m'     # Red
-On_IGreen='\e[0;102m'   # Green
-On_IYellow='\e[0;103m'  # Yellow
-On_IBlue='\e[0;104m'    # Blue
-On_IPurple='\e[0;105m'  # Purple
-On_ICyan='\e[0;106m'    # Cyan
-On_IWhite='\e[0;107m'   # White
+
 
 ################################################################
 ## Commandline
@@ -215,7 +274,7 @@ On_IWhite='\e[0;107m'   # White
 
 MEM_FREE="$(($(sed -n 's/MemFree:[\t ]\+\([0-9]\+\) kB/\1/p' /proc/meminfo) / 1024))"
 MEM_TOTAL="$(($(sed -n 's/MemTotal:[\t ]\+\([0-9]\+\) kB/\1/p' /proc/meminfo) / 1024))"
-export PS1="$Bold\t$Reset $Red\u$Reset@$Green\h$Reset:\$(pwd)$IBlue\$(__git_ps1)$Reset\$(kube_ps1) $Red>$Reset "
+export PS1="\[${Bold}\]\t\[${Reset}\] \[${Red}\]\u\[${Reset}\]@\[${Green}\]\h\[${Reset}\]:\$(pwd)\[${IBlue}\]\$(__git_ps1)\[${Reset}\]\$(kube_ps1) \[${Red}\]>\[${Reset}\] "
 
 ################################################################
 ## PATH
@@ -241,6 +300,32 @@ export NVM_DIR="$HOME/.nvm"
 ## Aliases
 ################################################################
 
+### Extract Function ### {{{
+## Extract most types of compressed files
+function extract {
+  echo Extracting $1 ...
+  if [ -f $1 ] ; then
+  case $1 in
+      *.tar.bz2)  tar xjf $1      ;;
+      *.tar.gz)   tar xzf $1      ;;
+      *.bz2)      bunzip2 $1      ;;
+      *.rar)      rar x $1        ;;
+      *.gz)       gunzip $1       ;;
+      *.tar)      tar xf $1       ;;
+      *.tbz2)     tar xjf $1      ;;
+      *.tgz)      tar xzf $1      ;;
+      *.zip)      unzip $1        ;;
+      *.Z)        uncompress $1   ;;
+      *.7z)       7z x $1         ;;
+      *.xz)       xz -d $1        ;;
+      *)          echo "'$1' cannot be extracted via extract()" ;;
+    esac
+    else
+    echo "'$1' is not a valid file"
+  fi
+}
+### End Extract ### }}}
+
 export TERM=xterm-256color
 
 ## Command Helpers
@@ -254,6 +339,8 @@ alias list_sort='du -chs * | sort -h'
 
 alias symlink='ln -sf'
 
+alias conf="nano ~/.bashrc && source ~/.bashrc"
+
 ## Git
 alias gc='git commit'
 alias gco='git checkout'
@@ -262,13 +349,45 @@ alias gpp='git pull && git push'
 alias gid='git rev-parse --short HEAD'
 alias grh='git reset --hard HEAD'
 
-function gc() {
+function gc {
   git commit -m "$1"
 }
 
-function git-recursive() {
+function git-recursive {
   find . -type d -name .git -exec sh -c "cd \"{}\"/../ && pwd && git $1" \;
 }
+
+function isWSL {
+  grep -q "microsoft" /proc/version
+  return
+}
+
+function isCore {
+  [[ "$(hostname)" == "23core" ]]
+  return
+}
+
+# 01  function i_should(){
+# 02      uname="$(uname -a)"
+# 03
+# 04      [[ "$uname" =~ Darwin ]] && return
+# 05
+# 06      if [[ "$uname" =~ Ubuntu ]]; then
+# 07          release="$(lsb_release -a)"
+# 08          [[ "$release" =~ LTS ]]
+# 09          return
+# 10      fi
+# 11
+# 12      false
+# 13  }
+# 14
+# 15  function do_it(){
+# 16      echo "Hello, old friend."
+# 17  }
+# 18
+# 19  if i_should; then
+# 20    do_it
+# 21  fi
 
 ## Docker
 alias dc='docker-compose'
@@ -349,10 +468,55 @@ alias lua='rlwrap luajit -l essentials'
 #   umask 0022
 # fi
 
-# if [ "$(pwd)" == "/root" ]; then
-#   cd "/code"
-# fi
+# https://stackoverflow.com/questions/669452/is-double-square-brackets-preferable-over-single-square-brackets-in-ba
+
+if [[ isWSL && "$(pwd)" == "/root" ]]; then
+  cd "/code"
+fi
+
+# use Windows' git when working under C:\ drive
+# function git() {
+#   if $(pwd -P | grep -q "^\/mnt\/c\/*"); then
+#     git.exe "$@"
+#   else
+#     command git "$@"
+#   fi
+# }
 
 # if [ -z "$(docker ps -a | grep portainer)" ]; then
 #   portainer
 # fi
+
+### ANUAR
+
+# alias reconf="source ~/.bashrc"
+# alias update-machine="sudo apt update && sudo apt upgrade -y && sudo snap refresh && sudo apt autoremove"
+# alias upgrade-machine="update-machine"
+# alias update-maschine="update-machine"
+# alias upgrade-maschine="update-machine"
+# alias show-ssh="cat ~/.ssh/id_rsa.pub"
+# # git
+# function gc {
+# 	git commit -m "$1"
+# }
+# function gout {
+# 	git checkout $1
+# }
+# function gbout {
+# 	git checkout -b $1
+# }
+# alias gs="git status"
+# alias gsa="git status && git add . && git status"
+# alias gpp="git pull && git push"
+# alias gp="git pull"
+# # docker
+# alias docrm="docker stop $(docker ps -a -q) && docker rm $(docker ps -a -q)"
+# ## docker-compose commands
+# alias dcd="docker-compose down"
+# alias dcu="docker-compose up"
+# # kubernetes
+# alias kgp="kubectl get pods"
+# alias wkgp="watch kubectl get pods"
+# alias kcp="kubectl get pods"
+# alias kcd="kubectl get deploy"
+# alias kcs="kubectl get svc"

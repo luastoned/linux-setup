@@ -4,7 +4,10 @@
 cd assets
 
 ## copy authorized_keys
-sudo mkdir ~/.ssh
+if [[ ! -d "~/.ssh" ]]; then
+  sudo mkdir ~/.ssh
+fi
+
 sudo cat .authorized_keys >> ~/.ssh/authorized_keys
 
 ## patch ssh config
