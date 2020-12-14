@@ -4,7 +4,7 @@
 cd assets
 
 ## copy authorized_keys
-if [[ ! -d "~/.ssh" ]]; then
+if [[ ! -d "$HOME/.ssh" ]]; then
   sudo mkdir ~/.ssh
 fi
 
