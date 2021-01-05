@@ -328,30 +328,7 @@ function extract {
 
 export TERM=xterm-256color
 
-## Command Helpers
-alias ..='cd ..'
-
-alias h='history'
-alias j='jobs -l'
-
-alias list_size='du -chs *'
-alias list_sort='du -chs * | sort -h'
-
-alias symlink='ln -sf'
-
-alias conf="nano ~/.bashrc && source ~/.bashrc"
-
-## Git
-alias gc='git commit'
-alias gco='git checkout'
-alias gs='git status'
-alias gpp='git pull && git push'
-alias gid='git rev-parse --short HEAD'
-alias grh='git reset --hard HEAD'
-
-function gc {
-  git commit -m "$1"
-}
+## Functions
 
 function git-recursive {
   find . -type d -name .git -exec sh -c "cd \"{}\"/../ && pwd && git $1" \;
@@ -389,10 +366,59 @@ function isCore {
 # 20    do_it
 # 21  fi
 
+## Command Helpers
+alias ..='cd ..'
+
+alias h='history'
+alias j='jobs -l'
+
+alias list_size='du -chs *'
+alias list_sort='du -chs * | sort -h'
+
+alias symlink='ln -sf'
+
+alias show-ssh="cat ~/.ssh/id_rsa.pub"
+
+alias conf="nano ~/.bashrc && source ~/.bashrc"
+
+## Git
+# alias gc='git commit'
+alias gco="git checkout"
+alias gs='git status'
+alias gp="git pull"
+alias gsa="git status && git add . && git status"
+alias gpp='git pull && git push'
+alias gid='git rev-parse --short HEAD'
+alias grh='git reset --hard HEAD'
+
+function gc {
+  git commit -m "$1"
+}
+
+function gout {
+	git checkout $1
+}
+
+function gbout {
+	git checkout -b $1
+}
+
 ## Docker
 alias dc='docker-compose'
+alias dcd="docker-compose down"
+alias dcu="docker-compose up"
+
 # export DOCKER_HOST=localhost:2375
 export DOCKER_HOST=unix:///var/run/docker.sock
+
+alias drm="docker stop $(docker ps -a -q) && docker rm $(docker ps -a -q)"
+alias dps='docker ps --format="table {{.Names}}\t{{.Image}}\t{{.Status}}"'
+
+## Kubernetes
+alias kgp="kubectl get pods"
+alias kgd="kubectl get deploy"
+alias kgs="kubectl get svc"
+alias wkgp="watch kubectl get pods"
 
 alias docker_cleanup_images='docker image prune'
 alias docker_cleanup_system='docker system prune'
@@ -486,37 +512,3 @@ fi
 # if [ -z "$(docker ps -a | grep portainer)" ]; then
 #   portainer
 # fi
-
-### ANUAR
-
-# alias reconf="source ~/.bashrc"
-# alias update-machine="sudo apt update && sudo apt upgrade -y && sudo snap refresh && sudo apt autoremove"
-# alias upgrade-machine="update-machine"
-# alias update-maschine="update-machine"
-# alias upgrade-maschine="update-machine"
-# alias show-ssh="cat ~/.ssh/id_rsa.pub"
-# # git
-# function gc {
-# 	git commit -m "$1"
-# }
-# function gout {
-# 	git checkout $1
-# }
-# function gbout {
-# 	git checkout -b $1
-# }
-# alias gs="git status"
-# alias gsa="git status && git add . && git status"
-# alias gpp="git pull && git push"
-# alias gp="git pull"
-# # docker
-# alias docrm="docker stop $(docker ps -a -q) && docker rm $(docker ps -a -q)"
-# ## docker-compose commands
-# alias dcd="docker-compose down"
-# alias dcu="docker-compose up"
-# # kubernetes
-# alias kgp="kubectl get pods"
-# alias wkgp="watch kubectl get pods"
-# alias kcp="kubectl get pods"
-# alias kcd="kubectl get deploy"
-# alias kcs="kubectl get svc"
