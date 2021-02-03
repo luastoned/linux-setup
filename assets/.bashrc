@@ -390,6 +390,7 @@ alias gsa="git status && git add . && git status"
 alias gpp='git pull && git push'
 alias gid='git rev-parse --short HEAD'
 alias grh='git reset --hard HEAD'
+alias gmo='git fetch origin && git merge origin/development'
 
 function gc {
   git commit -m "$1"
@@ -474,6 +475,9 @@ alias top_ram='top -o %MEM'
 
 ## Misc
 alias lua='rlwrap luajit -l essentials'
+
+alias nodemod_list='find . -name "node_modules" -type d -prune';
+alias nodemod_remove='find . -name "node_modules" -type d -prune -exec rm -rf "{}" +';
 
 ## WSL
 # mount /mnt/c to /c if not already done
