@@ -408,6 +408,7 @@ function gbout {
 alias dc='docker-compose'
 alias dcd="docker-compose down"
 alias dcu="docker-compose up"
+alias dcr='docker-compose up -d --force-recreate --no-deps --build'
 
 # export DOCKER_HOST=localhost:2375
 export DOCKER_HOST=unix:///var/run/docker.sock
@@ -438,6 +439,8 @@ alias portainer='docker pull portainer/portainer-ce:latest && \
   -v portainer_data:/data portainer/portainer-ce'
 # --rm
 # --restart unless-stopped
+
+alias dtop='docker run --rm -it --name=ctop --volume /var/run/docker.sock:/var/run/docker.sock:ro quay.io/vektorlab/ctop:latest'
 
 ## Packing
 alias pack_tar='tar -vcf'
@@ -500,7 +503,7 @@ alias nodemod_remove='find . -name "node_modules" -type d -prune -exec rm -rf "{
 
 # https://stackoverflow.com/questions/669452/is-double-square-brackets-preferable-over-single-square-brackets-in-ba
 
-if [[ isWSL && "$(pwd)" == "/root" ]]; then
+if isWSL && "$(pwd)" == "/root"; then
   cd "/code"
 fi
 
