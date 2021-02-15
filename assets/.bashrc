@@ -139,6 +139,15 @@ fi
 ## Terminal Control Escape Sequences: http://www.termsys.demon.co.uk/vtansi.htm
 ## Consider using some of: https://gist.github.com/bcap/5682077#file-terminal-control-sh
 ## Can unset with `unset -v {,B,U,I,BI,On_,On_I}{Bla,Red,Gre,Yel,Blu,Pur,Cya,Whi} RCol`
+
+# |       | bash  | hex    | octal   | NOTE                         |
+# |-------+-------+--------+---------+------------------------------|
+# | start | \e    | \x1b   | \033    |                              |
+# | start | \E    | \x1B   | -       | x cannot be capital          |
+# | end   | \e[0m | \x1m0m | \033[0m |                              |
+# | end   | \e[m  | \x1b[m | \033[m  | 0 is appended if you omit it |
+# |       |       |        |         |                              |
+
 RCol='\[\e[0m\]'  # Text Reset
 
 # Regular           Bold                 Underline            High Intensity       BoldHigh Intensity    Background       High Intensity Backgrounds
@@ -152,129 +161,13 @@ Cya='\[\e[0;36m\]'; BCya='\[\e[1;36m\]'; UCya='\[\e[4;36m\]'; ICya='\[\e[0;96m\]
 Whi='\[\e[0;37m\]'; BWhi='\[\e[1;37m\]'; UWhi='\[\e[4;37m\]'; IWhi='\[\e[0;97m\]'; BIWhi='\[\e[1;97m\]'; On_Whi='\e[47m'; On_IWhi='\[\e[0;107m\]';
 ### End Color Vars ### }}}
 
-## Colours and font styles
-## Syntax: echo -e "${FOREGROUND_COLOUR}${BACKGROUND_COLOUR}${STYLE}Hello world!${RESET_ALL}"
-
-# Escape sequence and resets
-ESC_SEQ="\x1b["
-RESET_ALL="${ESC_SEQ}0m"
-RESET_BOLD="${ESC_SEQ}21m"
-RESET_UL="${ESC_SEQ}24m"
-
-# Foreground colours
-FG_BLACK="${ESC_SEQ}30;"
-FG_RED="${ESC_SEQ}31;"
-FG_GREEN="${ESC_SEQ}32;"
-FG_YELLOW="${ESC_SEQ}33;"
-FG_BLUE="${ESC_SEQ}34;"
-FG_MAGENTA="${ESC_SEQ}35;"
-FG_CYAN="${ESC_SEQ}36;"
-FG_WHITE="${ESC_SEQ}37;"
-FG_BR_BLACK="${ESC_SEQ}90;"
-FG_BR_RED="${ESC_SEQ}91;"
-FG_BR_GREEN="${ESC_SEQ}92;"
-FG_BR_YELLOW="${ESC_SEQ}93;"
-FG_BR_BLUE="${ESC_SEQ}94;"
-FG_BR_MAGENTA="${ESC_SEQ}95;"
-FG_BR_CYAN="${ESC_SEQ}96;"
-FG_BR_WHITE="${ESC_SEQ}97;"
-
-# Background colours (optional)
-BG_BLACK="40;"
-BG_RED="41;"
-BG_GREEN="42;"
-BG_YELLOW="43;"
-BG_BLUE="44;"
-BG_MAGENTA="45;"
-BG_CYAN="46;"
-BG_WHITE="47;"
-
-# Font styles
-FS_REG="0m"
-FS_BOLD="1m"
-FS_UL="4m"
-
-# Reset
-Reset='\e[0m'           # Text Reset
-
-# Formatting
-Bold='\e[1m'            # Bold/Bright
-Dim='\e[2'              # Dim
-Underlined='\e[4m'      # Underlined
-Blink='\e[5m'           # Blink
-Invert='\e[7'           # Invert/Reverse the foreground and background colors
-Hidden='\e[8m'          # Hidden
-
-# Regular Colors
-Black='\e[0;30m'        # Black
-Red='\e[0;31m'          # Red
-Green='\e[0;32m'        # Green
-Yellow='\e[0;33m'       # Yellow
-Blue='\e[0;34m'         # Blue
-Purple='\e[0;35m'       # Purple
-Cyan='\e[0;36m'         # Cyan
-White='\e[0;37m'        # White
-
-# Bold
-BBlack='\e[1;30m'       # Black
-BRed='\e[1;31m'         # Red
-BGreen='\e[1;32m'       # Green
-BYellow='\e[1;33m'      # Yellow
-BBlue='\e[1;34m'        # Blue
-BPurple='\e[1;35m'      # Purple
-BCyan='\e[1;36m'        # Cyan
-BWhite='\e[1;37m'       # White
-
-# Underline
-UBlack='\e[4;30m'       # Black
-URed='\e[4;31m'         # Red
-UGreen='\e[4;32m'       # Green
-UYellow='\e[4;33m'      # Yellow
-UBlue='\e[4;34m'        # Blue
-UPurple='\e[4;35m'      # Purple
-UCyan='\e[4;36m'        # Cyan
-UWhite='\e[4;37m'       # White
-
-# Background
-On_Black='\e[40m'       # Black
-On_Red='\e[41m'         # Red
-On_Green='\e[42m'       # Green
-On_Yellow='\e[43m'      # Yellow
-On_Blue='\e[44m'        # Blue
-On_Purple='\e[45m'      # Purple
-On_Cyan='\e[46m'        # Cyan
-On_White='\e[47m'       # White
-
-# High Intensity
-IBlack='\e[0;90m'       # Black
-IRed='\e[0;91m'         # Red
-IGreen='\e[0;92m'       # Green
-IYellow='\e[0;93m'      # Yellow
-IBlue='\e[0;94m'        # Blue
-IPurple='\e[0;95m'      # Purple
-ICyan='\e[0;96m'        # Cyan
-IWhite='\e[0;97m'       # White
-
-# Bold High Intensity
-BIBlack='\e[1;90m';   # Black
-BIRed='\e[1;91m'        # Red
-BIGreen='\e[1;92m'      # Green
-BIYellow='\e[1;93m'     # Yellow
-BIBlue='\e[1;94m'       # Blue
-BIPurple='\e[1;95m'     # Purple
-BICyan='\e[1;96m'       # Cyan
-BIWhite='\e[1;97m'      # White
-
-# High Intensity backgrounds
-
-
 ################################################################
 ## Commandline
 ################################################################
 
 MEM_FREE="$(($(sed -n 's/MemFree:[\t ]\+\([0-9]\+\) kB/\1/p' /proc/meminfo) / 1024))"
 MEM_TOTAL="$(($(sed -n 's/MemTotal:[\t ]\+\([0-9]\+\) kB/\1/p' /proc/meminfo) / 1024))"
-export PS1="\[${Bold}\]\t\[${Reset}\] \[${Red}\]\u\[${Reset}\]@\[${Green}\]\h\[${Reset}\]:\$(pwd)\[${IBlue}\]\$(__git_ps1)\[${Reset}\]\$(kube_ps1) \[${Red}\]>\[${Reset}\] "
+export PS1="${BWhi}\t${RCol} ${IRed}\u${RCol}@${IGre}\h${RCol}:$(pwd)${IBlu}$(__git_ps1)${RCol}$(kube_ps1) ${IRed}>${RCol} "
 
 ################################################################
 ## PATH
@@ -344,35 +237,13 @@ function isCore {
   return
 }
 
-# 01  function i_should(){
-# 02      uname="$(uname -a)"
-# 03
-# 04      [[ "$uname" =~ Darwin ]] && return
-# 05
-# 06      if [[ "$uname" =~ Ubuntu ]]; then
-# 07          release="$(lsb_release -a)"
-# 08          [[ "$release" =~ LTS ]]
-# 09          return
-# 10      fi
-# 11
-# 12      false
-# 13  }
-# 14
-# 15  function do_it(){
-# 16      echo "Hello, old friend."
-# 17  }
-# 18
-# 19  if i_should; then
-# 20    do_it
-# 21  fi
-
 ## Command Helpers
 alias ..='cd ..'
 
 alias h='history'
 alias j='jobs -l'
 
-alias list_size='du -chs *'
+alias list_size='du -chs *' # --max-depth=1
 alias list_sort='du -chs * | sort -h'
 
 alias symlink='ln -sf'
@@ -408,7 +279,9 @@ function gbout {
 alias dc='docker-compose'
 alias dcd="docker-compose down"
 alias dcu="docker-compose up"
+alias dcp='docker-compose pull && docker-compose up -d'
 alias dcr='docker-compose up -d --force-recreate --no-deps --build'
+alias dc-update='docker-compose pull && docker-compose up -d'
 
 # export DOCKER_HOST=localhost:2375
 export DOCKER_HOST=unix:///var/run/docker.sock
@@ -519,3 +392,26 @@ fi
 # if [ -z "$(docker ps -a | grep portainer)" ]; then
 #   portainer
 # fi
+
+
+# 01  function i_should(){
+# 02      uname="$(uname -a)"
+# 03
+# 04      [[ "$uname" =~ Darwin ]] && return
+# 05
+# 06      if [[ "$uname" =~ Ubuntu ]]; then
+# 07          release="$(lsb_release -a)"
+# 08          [[ "$release" =~ LTS ]]
+# 09          return
+# 10      fi
+# 11
+# 12      false
+# 13  }
+# 14
+# 15  function do_it(){
+# 16      echo "Hello, old friend."
+# 17  }
+# 18
+# 19  if i_should; then
+# 20    do_it
+# 21  fi
