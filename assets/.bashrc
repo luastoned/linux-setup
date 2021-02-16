@@ -167,7 +167,7 @@ Whi='\[\e[0;37m\]'; BWhi='\[\e[1;37m\]'; UWhi='\[\e[4;37m\]'; IWhi='\[\e[0;97m\]
 
 MEM_FREE="$(($(sed -n 's/MemFree:[\t ]\+\([0-9]\+\) kB/\1/p' /proc/meminfo) / 1024))"
 MEM_TOTAL="$(($(sed -n 's/MemTotal:[\t ]\+\([0-9]\+\) kB/\1/p' /proc/meminfo) / 1024))"
-export PS1="${BWhi}\t${RCol} ${IRed}\u${RCol}@${IGre}\h${RCol}:$(pwd)${IBlu}$(__git_ps1)${RCol}$(kube_ps1) ${IRed}>${RCol} "
+export PS1="${BWhi}\t${RCol} ${IRed}\u${RCol}@${IGre}\h${RCol}:\$(pwd)${IBlu}\$(__git_ps1)${RCol}\$(kube_ps1) ${IRed}>${RCol} "
 
 ################################################################
 ## PATH
