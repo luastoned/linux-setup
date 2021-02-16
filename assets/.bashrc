@@ -376,7 +376,7 @@ alias nodemod_remove='find . -name "node_modules" -type d -prune -exec rm -rf "{
 
 # https://stackoverflow.com/questions/669452/is-double-square-brackets-preferable-over-single-square-brackets-in-ba
 
-if isWSL && "$(pwd)" == "/root"; then
+if [[ isWSL && "$(pwd)" == "/root" ]]; then
   cd "/code"
 fi
 
