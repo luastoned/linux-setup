@@ -190,6 +190,14 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
 
 ################################################################
+## KREW
+################################################################
+
+export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
+alias kubectx="kubectl ctx"
+alias kubens="kubectl ns"
+
+################################################################
 ## Aliases
 ################################################################
 
@@ -309,7 +317,9 @@ alias portainer='docker pull portainer/portainer-ce:latest && \
   --name portainer \
   -p 9000:9000 \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  -v portainer_data:/data portainer/portainer-ce'
+  -v portainer_data:/data portainer/portainer-ce \
+  -e KUBERNETES_SERVICE_HOST=kubernetes.default.svc.cluster.local \
+  -e KUBERNETES_SERVICE_PORT=443'
 # --rm
 # --restart unless-stopped
 
