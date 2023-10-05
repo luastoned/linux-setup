@@ -260,6 +260,8 @@ alias show-ssh="cat ~/.ssh/id_rsa.pub"
 
 alias conf="nano ~/.bashrc && source ~/.bashrc"
 
+alias yup="yarn upgrade-interactive --latest"
+
 ## Git
 # alias gc='git commit'
 alias gco="git checkout"
@@ -284,12 +286,12 @@ function gbout {
 }
 
 ## Docker
-alias dc='docker-compose'
-alias dcd="docker-compose down"
-alias dcu="docker-compose up"
-alias dcp='docker-compose pull && docker-compose up -d'
-alias dcr='docker-compose up -d --force-recreate --no-deps --build'
-alias dc-update='docker-compose pull && docker-compose up -d'
+alias dc='docker compose'
+alias dcd="docker compose down"
+alias dcu="docker compose up"
+alias dcp='docker compose pull && docker compose up -d'
+alias dcr='docker compose up -d --force-recreate --no-deps --build'
+alias dc-update='docker compose pull && docker compose up -d'
 
 # export DOCKER_HOST=localhost:2375
 export DOCKER_HOST=unix:///var/run/docker.sock
@@ -317,9 +319,7 @@ alias portainer='docker pull portainer/portainer-ce:latest && \
   --name portainer \
   -p 9000:9000 \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  -v portainer_data:/data portainer/portainer-ce \
-  -e KUBERNETES_SERVICE_HOST=kubernetes.default.svc.cluster.local \
-  -e KUBERNETES_SERVICE_PORT=443'
+  -v portainer_data:/data portainer/portainer-ce:latest'
 # --rm
 # --restart unless-stopped
 
