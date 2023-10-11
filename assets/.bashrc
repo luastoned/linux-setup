@@ -288,10 +288,10 @@ function gbout {
 ## Docker
 alias dc='docker compose'
 alias dcd="docker compose down"
-alias dcu="docker compose up"
+alias dcl="docker compose logs -f --tail 256"
+alias dcu="docker compose up -d && docker compose logs -f"
 alias dcp='docker compose pull && docker compose up -d'
 alias dcr='docker compose up -d --force-recreate --no-deps --build'
-alias dc-update='docker compose pull && docker compose up -d'
 
 # export DOCKER_HOST=localhost:2375
 export DOCKER_HOST=unix:///var/run/docker.sock
