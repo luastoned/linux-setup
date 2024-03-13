@@ -205,7 +205,7 @@ alias kubens="kubectl ns"
 ## Extract most types of compressed files
 function extract {
   echo Extracting $1 ...
-  if [ -f $1 ] ; then
+  if [ -f $1 ]; then
   case $1 in
       *.tar.bz2)  tar xjf $1      ;;
       *.tar.gz)   tar xzf $1      ;;
@@ -245,6 +245,11 @@ function isCore {
   return
 }
 
+function isZen {
+  [[ "$(hostname)" == "zen23" ]]
+  return
+}
+
 ## Command Helpers
 alias ..='cd ..'
 
@@ -261,6 +266,7 @@ alias show-ssh="cat ~/.ssh/id_rsa.pub"
 alias conf="nano ~/.bashrc && source ~/.bashrc"
 
 alias yup="yarn upgrade-interactive --latest"
+alias pm2-update="pm2 update && pm2 restart all --update-env"
 
 ## Git
 # alias gc='git commit'
@@ -310,6 +316,8 @@ alias docker_cleanup_system='docker system prune'
 
 alias docker_remove_dangling_images='docker rmi $(docker images -f "dangling=true" -q)'
 alias docker_remove_exited_containers='docker rm -v $(docker ps -a -q -f status=exited)'
+
+alias vscode_kill='ps aux | grep .vscode-server | grep [n]ode | "{print \$2}" | xargs kill'
 
 ## Docker Containers
 alias portainer='docker pull portainer/portainer-ce:latest && \
@@ -362,8 +370,8 @@ alias top_ram='top -o %MEM'
 ## Misc
 alias lua='rlwrap luajit -l essentials'
 
-alias nodemod_list='find . -name "node_modules" -type d -prune';
-alias nodemod_remove='find . -name "node_modules" -type d -prune -exec rm -rf "{}" +';
+alias nodemod_list='find . -name "node_modules" -type d -prune'
+alias nodemod_remove='find . -name "node_modules" -type d -prune -exec rm -rf "{}" +'
 
 ## WSL
 # mount /mnt/c to /c if not already done
