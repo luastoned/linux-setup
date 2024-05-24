@@ -318,16 +318,17 @@ alias docker_remove_dangling_images='docker rmi $(docker images -f "dangling=tru
 alias docker_remove_exited_containers='docker rm -v $(docker ps -a -q -f status=exited)'
 
 alias vscode_kill='ps aux | grep .vscode-server | grep [n]ode | "{print \$2}" | xargs kill'
+alias free_ram='sync && echo 3 | sudo tee /proc/sys/vm/drop_caches > /dev/null'
 
 ## Docker Containers
-alias portainer='docker pull portainer/portainer-ce:latest && \
+alias portainer='docker pull portainer/portainer-ee:latest && \
   docker run \
   -d \
   --rm \
   --name portainer \
   -p 9000:9000 \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  -v portainer_data:/data portainer/portainer-ce:latest'
+  -v portainer_data:/data portainer/portainer-ee:latest'
 # --rm
 # --restart unless-stopped
 

@@ -16,13 +16,13 @@ runBashrc=1
 runDocker=1
 runNode=1
 runUtilities=1
-runCertbot=1
 runNano=1
 runTmux=1
 runInotify=1
 runNginx=1
 
 # default no values
+runCertbot=0
 runK3d=0
 runSSHKeys=0
 
@@ -54,13 +54,13 @@ if ! skipQuestions; then
     runUtilities=0
   fi
 
-  read -p "Install Certbot? (Y/n) "
-  if [[ $REPLY =~ ^[Nn]$ ]]; then
+  read -p "Install Certbot? (y/N) "
+  if [[ $REPLY =~ ^[Yy]$ ]]; then
     runCertbot=0
   fi
 
   read -p "Install k3d, kubectl, krew, kubectx, kubens, konfig, helm ? (y/N) "
-  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+  if [[ $REPLY =~ ^[Yy]$ ]]; then
     runK3d=1
   fi
 
@@ -81,7 +81,7 @@ if ! skipQuestions; then
   fi
 
   read -p "Copy SSH keys to authorized_keys ? (y/N) "
-  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+  if [[ $REPLY =~ ^[Yy]$ ]]; then
     runSSHKeys=1
   fi
 fi
