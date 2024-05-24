@@ -19,4 +19,5 @@ echo "deb [signed-by=/usr/share/keyrings/$YARN_KEY] https://dl.yarnpkg.com/debia
 )
 
 ## install yarn
+sudo apt update
 sudo apt install --no-install-recommends yarn -y
