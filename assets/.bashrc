@@ -317,7 +317,7 @@ alias docker_cleanup_system='docker system prune'
 alias docker_remove_dangling_images='docker rmi $(docker images -f "dangling=true" -q)'
 alias docker_remove_exited_containers='docker rm -v $(docker ps -a -q -f status=exited)'
 
-alias vscode_kill='ps aux | grep .vscode-server | grep [n]ode | "{print \$2}" | xargs kill'
+alias vscode_kill='ps aux | grep .vscode-server | grep [n]ode | awk "{print \$2}" | xargs kill'
 alias free_ram='sync && echo 3 | sudo tee /proc/sys/vm/drop_caches > /dev/null'
 
 ## Docker Containers
