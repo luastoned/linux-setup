@@ -264,7 +264,9 @@ alias symlink='ln -sf'
 alias show-ssh="cat ~/.ssh/id_rsa.pub"
 
 alias conf="nano ~/.bashrc && source ~/.bashrc"
+alias config="nano ~/.bashrc && source ~/.bashrc"
 
+alias bat="batcat"
 alias yup="yarn upgrade-interactive --latest"
 alias pm2-update="pm2 update && pm2 restart all --update-env"
 
@@ -369,7 +371,7 @@ alias top_cpu='top -o %CPU'
 alias top_ram='top -o %MEM'
 
 ## Misc
-alias lua='rlwrap luajit -l essentials'
+alias lua='rlwrap luajit'
 
 alias nodemod_list='find . -name "node_modules" -type d -prune'
 alias nodemod_remove='find . -name "node_modules" -type d -prune -exec rm -rf "{}" +'
