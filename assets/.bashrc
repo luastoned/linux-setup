@@ -32,7 +32,7 @@ fi
 
 # set a fancy prompt (non-color, unless we know we "want" color)
 case "$TERM" in
-  xterm-color) color_prompt=yes ;;
+xterm-color) color_prompt=yes ;;
 esac
 
 # uncomment for a colored prompt, if the terminal has the capability; turned
@@ -60,11 +60,10 @@ unset color_prompt force_color_prompt
 
 # If this is an xterm set the title to user@host:dir
 case "$TERM" in
-  xterm*|rxvt*)
-    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
-    ;;
-  *)
-    ;;
+xterm* | rxvt*)
+  PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+  ;;
+*) ;;
 esac
 
 # enable color support of ls and also add handy aliases
@@ -148,7 +147,7 @@ fi
 # | end   | \e[m  | \x1b[m | \033[m  | 0 is appended if you omit it |
 # |       |       |        |         |                              |
 
-RCol='\[\e[0m\]'  # Text Reset
+RCol='\[\e[0m\]' # Text Reset
 
 # Regular           Bold                 Underline            High Intensity       BoldHigh Intensity    Background       High Intensity Backgrounds
 Bla='\[\e[0;30m\]'; BBla='\[\e[1;30m\]'; UBla='\[\e[4;30m\]'; IBla='\[\e[0;90m\]'; BIBla='\[\e[1;90m\]'; On_Bla='\e[40m'; On_IBla='\[\e[0;100m\]';
@@ -206,22 +205,22 @@ alias kubens="kubectl ns"
 function extract {
   echo Extracting $1 ...
   if [ -f $1 ]; then
-  case $1 in
-      *.tar.bz2)  tar xjf $1      ;;
-      *.tar.gz)   tar xzf $1      ;;
-      *.bz2)      bunzip2 $1      ;;
-      *.rar)      rar x $1        ;;
-      *.gz)       gunzip $1       ;;
-      *.tar)      tar xf $1       ;;
-      *.tbz2)     tar xjf $1      ;;
-      *.tgz)      tar xzf $1      ;;
-      *.zip)      unzip $1        ;;
-      *.Z)        uncompress $1   ;;
-      *.7z)       7z x $1         ;;
-      *.xz)       xz -d $1        ;;
-      *)          echo "'$1' cannot be extracted via extract()" ;;
+    case $1 in
+    *.tar.bz2) tar xjf $1 ;;
+    *.tar.gz) tar xzf $1 ;;
+    *.bz2) bunzip2 $1 ;;
+    *.rar) rar x $1 ;;
+    *.gz) gunzip $1 ;;
+    *.tar) tar xf $1 ;;
+    *.tbz2) tar xjf $1 ;;
+    *.tgz) tar xzf $1 ;;
+    *.zip) unzip $1 ;;
+    *.Z) uncompress $1 ;;
+    *.7z) 7z x $1 ;;
+    *.xz) xz -d $1 ;;
+    *) echo "'$1' cannot be extracted via extract()" ;;
     esac
-    else
+  else
     echo "'$1' is not a valid file"
   fi
 }
@@ -286,11 +285,11 @@ function gc {
 }
 
 function gout {
-	git checkout $1
+  git checkout $1
 }
 
 function gbout {
-	git checkout -b $1
+  git checkout -b $1
 }
 
 ## Docker
@@ -304,7 +303,7 @@ alias dcr='docker compose up -d --force-recreate --no-deps --build'
 # export DOCKER_HOST=localhost:2375
 export DOCKER_HOST=unix:///var/run/docker.sock
 
-alias drm="docker stop $(docker ps -a -q) && docker rm $(docker ps -a -q)"
+alias drm='docker stop $(docker ps -a -q) && docker rm $(docker ps -a -q)'
 alias dps='docker ps --format="table {{.Names}}\t{{.Image}}\t{{.Status}}"'
 
 ## Kubernetes
@@ -413,7 +412,6 @@ fi
 # if [ -z "$(docker ps -a | grep portainer)" ]; then
 #   portainer
 # fi
-
 
 # 01  function i_should(){
 # 02      uname="$(uname -a)"
