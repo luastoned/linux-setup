@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ## dependencies
-sudo apt install apt-transport-https ca-certificates curl gnupg gnupg-agent software-properties-common -y
+sudo apt install apt-transport-https ca-certificates curl gnupg gnupg-agent jq software-properties-common -y
 
 ## remove old versions
 for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt remove $pkg; done
@@ -34,3 +34,20 @@ sudo groupadd docker
 
 ## add user to docker group
 sudo usermod -aG docker ${USER}
+
+## enable log rotation
+sudo sh -c '[ -f /etc/docker/daemon.json ] && cp /etc/docker/daemon.json /etc/docker/daemon.json.bak'
+
+sudo jq -n \
+  --slurpfile e /etc/docker/daemon.json '
+    ($e[0] // {})                                         # start with existing JSON or {}
+    | .["log-opts"] = (                                   # update log-opts
+        (.["log-opts"] // {}) + {                         # keep existing log-opts, add/overwrite ours
+          "max-size": "100m",
+          "max-file": "3"
+        }
+      )
+    | .["log-driver"] = "json-file"                       # overwrite log-driver
+  ' \
+  | sudo tee /etc/docker/daemon.json.tmp > /dev/null \
+  && sudo mv /etc/docker/daemon.json.tmp /etc/docker/daemon.json
