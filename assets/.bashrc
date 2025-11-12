@@ -212,7 +212,7 @@ fi
 # Krew (kubectl plugin manager)
 export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
 alias kubectx="kubectl ctx"
-alias kubens="kubectl ns"
+alias kubns="kubectl ns"
 
 ################################################################
 ## Environment Variables
@@ -301,7 +301,7 @@ alias list_sort='du -chs * | sort -h'
 alias symlink='ln -sf'
 
 # Configuration
-alias show-ssh="cat ~/.ssh/id_rsa.pub"
+alias show-ssh='[ -f ~/.ssh/id_ed25519.pub ] && echo "ED25519:" && cat ~/.ssh/id_ed25519.pub; [ -f ~/.ssh/id_rsa.pub ] && echo "RSA:" && cat ~/.ssh/id_rsa.pub'
 alias conf="nano ~/.bashrc && source ~/.bashrc"
 alias config="nano ~/.bashrc && source ~/.bashrc"
 
