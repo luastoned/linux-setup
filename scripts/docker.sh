@@ -26,11 +26,6 @@ echo "== Installing Docker..."
 echo "===================================================================================================="
 echo ""
 
-## dependencies
-echo "Installing dependencies..."
-sudo apt install jq -y
-
-echo ""
 echo "Removing old Docker versions..."
 for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do
 	sudo apt remove "$pkg" -y 2>/dev/null || true
@@ -62,22 +57,7 @@ sudo groupadd docker 2>/dev/null || true
 sudo usermod -aG docker "${USER}"
 
 echo ""
-echo "Configuring log rotation..."
-[ -f /etc/docker/daemon.json ] && sudo cp /etc/docker/daemon.json /etc/docker/daemon.json.bak
-
-sudo jq -n \
-	--slurpfile e /etc/docker/daemon.json '
-    ($e[0] // {})
-    | .["log-opts"] = (
-        (.["log-opts"] // {}) + {
-          "max-size": "100m",
-          "max-file": "3"
-        }
-      )
-    | .["log-driver"] = "json-file"
-  ' | sudo tee /etc/docker/daemon.json.tmp >/dev/null
-
-sudo mv /etc/docker/daemon.json.tmp /etc/docker/daemon.json
+bash "${SETUP_DIR}/utilities/docker-logs-rotation.sh"
 
 echo ""
 echo "===================================================================================================="
