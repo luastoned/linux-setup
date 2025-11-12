@@ -1,23 +1,66 @@
 #!/bin/bash
 
+set -euo pipefail
+
+# Get script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SETUP_DIR="$(dirname "$SCRIPT_DIR")"
+
+echo "===================================================================================================="
+echo "== Installing Node.js (via NVM)..."
+echo "===================================================================================================="
+echo ""
+
+function isCommand() {
+	command -v "$1" >/dev/null 2>&1
+}
+
+function sourceNVM() {
+	export NVM_DIR="$HOME/.nvm"
+	[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+}
+
 ## dependencies
-sudo apt install software-properties-common gpg-agent jq -y
+echo "Installing dependencies..."
+sudo apt install jq -y
 
-## yarn repository
-# curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-# sudo add-apt-repository "deb https://dl.yarnpkg.com/debian/ stable main"
-# echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+echo ""
+# Install nvm if not present
+if ! isCommand nvm; then
+	echo "Installing NVM..."
+	NVM_VERSION="$(curl -fsSL https://api.github.com/repos/nvm-sh/nvm/releases/latest | jq --raw-output '.tag_name')"
+	curl -fsSL "https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh" | bash
+else
+	echo "NVM is already installed"
+fi
 
-YARN_KEY=yarn-keyring.gpg
-curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg | sudo gpg --dearmour -o /usr/share/keyrings/$YARN_KEY
-echo "deb [signed-by=/usr/share/keyrings/$YARN_KEY] https://dl.yarnpkg.com/debian stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+# Source nvm to make it available in this script
+sourceNVM
 
-## nvm
-(
-  VERSION="$(curl -fsSL https://api.github.com/repos/nvm-sh/nvm/releases/latest | jq --raw-output '.tag_name')"
-  curl -fsSL "https://raw.githubusercontent.com/nvm-sh/nvm/${VERSION}/install.sh" | bash
-)
+echo ""
+echo "===================================================================================================="
+echo "== NVM installation complete!"
+echo "===================================================================================================="
+echo ""
 
-## install yarn
-sudo apt update
-sudo apt install --no-install-recommends yarn -y
+if ! isCommand node; then
+	echo "To install Node.js, run:"
+	echo "  source ~/.bashrc"
+	echo "  nvm install --lts"
+	echo "  nvm use --lts"
+else
+	echo "Node.js is already installed: $(node --version)"
+fi
+
+echo ""
+
+if ! isCommand yarn; then
+	echo "To install Yarn, run:"
+	echo "  corepack enable"
+	echo "  yarn set version berry"
+else
+	echo "Yarn is already installed: $(yarn --version)"
+fi
+
+echo ""
+echo "===================================================================================================="

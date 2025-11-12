@@ -1,147 +1,91 @@
 #!/bin/bash
 
-echo "################################################################"
-echo "## Linux Setup"
-echo "################################################################"
+set -euo pipefail
 
-skipArg=$1
+# Get the setup directory and derive scripts directory
+SETUP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$SETUP_DIR/scripts"
+
+cd "$SETUP_DIR"
+
+# Display system information
+LINUX_VERSION=$(lsb_release -rs)
+LINUX_CODENAME=$(lsb_release -cs)
+LINUX_DESCRIPTION=$(lsb_release -ds)
+KERNEL_VERSION=$(uname -r)
+
+echo "===================================================================================================="
+echo "== Linux Setup: $LINUX_DESCRIPTION, Codename: $LINUX_CODENAME, Kernel: $KERNEL_VERSION"
+echo "===================================================================================================="
+echo ""
+
+# Parse arguments
+skipArg=${1:-}
 function skipQuestions {
-  [[ "$skipArg" == "-f" || "$skipArg" == "--force" ]]
-  return
+	[[ "$skipArg" == "-f" || "$skipArg" == "--force" ]]
 }
 
-# default yes values
+# Helper function for yes/no prompts (default yes)
+function promptYesDefault {
+	local prompt="$1"
+	read -p "$prompt (Y/n) " -r
+	[[ ! $REPLY =~ ^[Nn]$ ]]
+}
+
+# Helper function for yes/no prompts (default no)
+function promptNoDefault {
+	local prompt="$1"
+	read -p "$prompt (y/N) " -r
+	[[ $REPLY =~ ^[Yy]$ ]]
+}
+
+# Configuration defaults (1 = run, 0 = skip)
+# Default YES
 runUpdate=1
 runBashrc=1
 runDocker=1
 runNode=1
 runUtilities=1
-runNano=1
-runTmux=1
-runInotify=1
+runConfigs=1
 runNginx=1
+runInotify=1
 
-# default no values
-runCertbot=0
+# Default NO
 runK3d=0
 runSSHKeys=0
 
+# Interactive prompts
 if ! skipQuestions; then
-  echo "Skip questions with -f or --force"
+	echo "Skip questions with -f or --force"
+	echo ""
 
-  read -p "Run apt update and upgrade? (Y/n) "
-  if [[ $REPLY =~ ^[Nn]$ ]]; then
-    runUpdate=0
-  fi
+	promptYesDefault "Run apt update and upgrade?" && runUpdate=1 || runUpdate=0
+	promptYesDefault "Install .bashrc?" && runBashrc=1 || runBashrc=0
+	promptYesDefault "Install Docker?" && runDocker=1 || runDocker=0
+	promptYesDefault "Install Node & Yarn?" && runNode=1 || runNode=0
+	promptYesDefault "Install Utilities (git, curl, tmux, ...)?" && runUtilities=1 || runUtilities=0
+	promptNoDefault "Install k3d, kubectl, krew, kubectx, kubens, konfig, helm?" && runK3d=1 || runK3d=0
+	promptYesDefault "Update nano / tmux / (wsl) configs?" && runConfigs=1 || runConfigs=0
+	promptYesDefault "Stop nginx and nginx service?" && runNginx=1 || runNginx=0
+	promptYesDefault "Increase the amount of inotify watchers?" && runInotify=1 || runInotify=0
+	promptNoDefault "Copy SSH keys to authorized_keys?" && runSSHKeys=1 || runSSHKeys=0
 
-  read -p "Install .bashrc? (Y/n) "
-  if [[ $REPLY =~ ^[Nn]$ ]]; then
-    runBashrc=0
-  fi
-
-  read -p "Install Docker? (Y/n) "
-  if [[ $REPLY =~ ^[Nn]$ ]]; then
-    runDocker=0
-  fi
-
-  read -p "Install Node & Yarn? (Y/n) "
-  if [[ $REPLY =~ ^[Nn]$ ]]; then
-    runNode=0
-  fi
-
-  read -p "Install Utilities (git, curl, tmux, ...)? (Y/n) "
-  if [[ $REPLY =~ ^[Nn]$ ]]; then
-    runUtilities=0
-  fi
-
-  read -p "Install Certbot? (y/N) "
-  if [[ $REPLY =~ ^[Yy]$ ]]; then
-    runCertbot=0
-  fi
-
-  read -p "Install k3d, kubectl, krew, kubectx, kubens, konfig, helm ? (y/N) "
-  if [[ $REPLY =~ ^[Yy]$ ]]; then
-    runK3d=1
-  fi
-
-  read -p "Update nano / tmux config? (Y/n) "
-  if [[ $REPLY =~ ^[Nn]$ ]]; then
-    runNano=0
-    runTmux=0
-  fi
-
-  read -p "Stop nginx and nginx service? (Y/n) "
-  if [[ $REPLY =~ ^[Nn]$ ]]; then
-    runNginx=0
-  fi
-
-  read -p "Increase the amount of inotify watchers? (Y/n) "
-  if [[ $REPLY =~ ^[Nn]$ ]]; then
-    runInotify=0
-  fi
-
-  read -p "Copy SSH keys to authorized_keys ? (y/N) "
-  if [[ $REPLY =~ ^[Yy]$ ]]; then
-    runSSHKeys=1
-  fi
+	echo ""
 fi
 
-if [[ $runUpdate == 1 ]]; then
-  /bin/bash scripts/update.sh
-fi
+# Execute scripts based on configuration
+[[ $runUpdate == 1 ]] && /bin/bash "$SCRIPT_DIR/update.sh"
+[[ $runBashrc == 1 ]] && /bin/bash "$SCRIPT_DIR/bashrc.sh"
+[[ $runDocker == 1 ]] && /bin/bash "$SCRIPT_DIR/docker.sh"
+[[ $runNode == 1 ]] && /bin/bash "$SCRIPT_DIR/node.sh"
+[[ $runUtilities == 1 ]] && /bin/bash "$SCRIPT_DIR/utilities.sh"
+[[ $runConfigs == 1 ]] && /bin/bash "$SCRIPT_DIR/configs.sh"
+[[ $runInotify == 1 ]] && /bin/bash "$SCRIPT_DIR/inotify.sh"
+[[ $runNginx == 1 ]] && /bin/bash "$SCRIPT_DIR/stop-nginx.sh"
+[[ $runK3d == 1 ]] && /bin/bash "$SCRIPT_DIR/k3d.sh"
+[[ $runSSHKeys == 1 ]] && /bin/bash "$SCRIPT_DIR/ssh-keys.sh"
 
-if [[ $runBashrc == 1 ]]; then
-  /bin/bash scripts/bashrc.sh
-fi
-
-if [[ $runDocker == 1 ]]; then
-  /bin/bash scripts/docker.sh
-fi
-
-if [[ $runNode == 1 ]]; then
-  /bin/bash scripts/node.sh
-fi
-
-if [[ $runUtilities == 1 ]]; then
-  /bin/bash scripts/utilities.sh
-fi
-
-if [[ $runCertbot == 1 ]]; then
-  /bin/bash scripts/certbot.sh
-fi
-
-if [[ $runNano == 1 ]]; then
-  /bin/bash scripts/nano.sh
-fi
-
-if [[ $runTmux == 1 ]]; then
-  /bin/bash scripts/tmux.sh
-fi
-
-if [[ $runInotify == 1 ]]; then
-  /bin/bash scripts/inotify-watchers.sh
-fi
-
-if [[ $runNginx == 1 ]]; then
-  /bin/bash scripts/stop-nginx.sh
-fi
-
-if [[ $runK3d == 1 ]]; then
-  /bin/bash scripts/k3d.sh
-fi
-
-if [[ $runSSHKeys == 1 ]]; then
-  /bin/bash scripts/ssh-keys.sh
-fi
-
-exit 0
-
-# read -p "Run APT update and upgrade? (Y/n) " -n 1
-# case ${answer:0:1} in
-# y | Y)
-#   echo 'Running apt update ...'
-#   ;;
-# *)
-#   echo 'Skipping apt update ...'
-#   ;;
-# esac
+echo ""
+echo "===================================================================================================="
+echo "== Setup complete!"
+echo "===================================================================================================="

@@ -1,53 +1,90 @@
 #!/bin/bash
 
+set -euo pipefail
+
+# Get script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SETUP_DIR="$(dirname "$SCRIPT_DIR")"
+
+function isWSL {
+	grep -q "microsoft" /proc/version
+}
+
+if isWSL; then
+	echo "===================================================================================================="
+	echo "== WSL detected - skipping Docker installation"
+	echo "===================================================================================================="
+	echo ""
+	echo "Use Docker Desktop for Windows instead."
+	echo ""
+	echo "===================================================================================================="
+	exit 0
+fi
+
+echo "===================================================================================================="
+echo "== Installing Docker..."
+echo "===================================================================================================="
+echo ""
+
 ## dependencies
-sudo apt install apt-transport-https ca-certificates curl gnupg gnupg-agent jq software-properties-common -y
+echo "Installing dependencies..."
+sudo apt install jq -y
 
-## remove old versions
-for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt remove $pkg; done
+echo ""
+echo "Removing old Docker versions..."
+for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do
+	sudo apt remove "$pkg" -y 2>/dev/null || true
+done
 
-## docker repository
-# curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-# sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-
-# add docker's official GPG key
-# /usr/share/keyrings
-# curl -fsSL https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --dearmor -o /usr/share/keyrings/elastic-7.x.gpg
-# curl -fsSL https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo tee /usr/share/keyrings/elastic-7.x.gpg
-
+echo ""
+echo "Adding Docker's GPG key..."
 sudo install -m 0755 -d /etc/apt/keyrings
 sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
 sudo chmod a+r /etc/apt/keyrings/docker.asc
 
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+echo ""
+echo "Adding Docker repository..."
+ARCH="$(dpkg --print-architecture)"
 
-# sudo add-apt-repository "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-# echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+. /etc/os-release
+UBUNTU_CODENAME="${UBUNTU_CODENAME:-$VERSION_CODENAME}"
 
-## install docker
+echo "deb [arch=$ARCH signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $UBUNTU_CODENAME stable" | sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
+
+echo ""
+echo "Installing Docker packages..."
 sudo apt update
 sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
 
-## create docker group
-sudo groupadd docker
+echo ""
+echo "Configuring Docker group..."
+sudo groupadd docker 2>/dev/null || true
+sudo usermod -aG docker "${USER}"
 
-## add user to docker group
-sudo usermod -aG docker ${USER}
-
-## enable log rotation
-sudo sh -c '[ -f /etc/docker/daemon.json ] && cp /etc/docker/daemon.json /etc/docker/daemon.json.bak'
+echo ""
+echo "Configuring log rotation..."
+[ -f /etc/docker/daemon.json ] && sudo cp /etc/docker/daemon.json /etc/docker/daemon.json.bak
 
 sudo jq -n \
-  --slurpfile e /etc/docker/daemon.json '
-    ($e[0] // {})                                         # start with existing JSON or {}
-    | .["log-opts"] = (                                   # update log-opts
-        (.["log-opts"] // {}) + {                         # keep existing log-opts, add/overwrite ours
+	--slurpfile e /etc/docker/daemon.json '
+    ($e[0] // {})
+    | .["log-opts"] = (
+        (.["log-opts"] // {}) + {
           "max-size": "100m",
           "max-file": "3"
         }
       )
-    | .["log-driver"] = "json-file"                       # overwrite log-driver
-  ' \
-  | sudo tee /etc/docker/daemon.json.tmp > /dev/null \
-  && sudo mv /etc/docker/daemon.json.tmp /etc/docker/daemon.json
+    | .["log-driver"] = "json-file"
+  ' | sudo tee /etc/docker/daemon.json.tmp >/dev/null
+
+sudo mv /etc/docker/daemon.json.tmp /etc/docker/daemon.json
+
+echo ""
+echo "===================================================================================================="
+echo "== Docker installation complete!"
+echo "===================================================================================================="
+echo ""
+echo "To apply group changes, log out and log back in, or run:"
+echo "  newgrp docker"
+echo ""
+echo "===================================================================================================="
