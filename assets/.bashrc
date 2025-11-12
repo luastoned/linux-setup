@@ -443,11 +443,11 @@ if isWSL; then
 		export PATH="/c/Windows/System32:/c/Users/$WINDOWS_USER/AppData/Local/Programs/Microsoft VS Code/bin:$PATH"
 	fi
 	cd "$PREV_PWD" || true
+fi
 
-	# Auto-navigate to /code if starting in /root
-	if [[ "$(pwd)" == "/root" ]]; then
-		cd "/code" 2>/dev/null || true
-	fi
+# Auto-navigate to /code if starting in /root
+if [[ "$(pwd)" == "/root" ]] && [[ -d "/code" ]]; then
+	cd "/code" 2>/dev/null || true
 fi
 
 ################################################################
