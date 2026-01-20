@@ -7,7 +7,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SETUP_DIR="$(dirname "$SCRIPT_DIR")"
 
 echo "===================================================================================================="
-echo "== Installing Kubernetes tools (k3d, kubectl, krew, kubectx, kubens, konfig, helm)..."
+echo "== Installing Kubernetes tools (k3d, kubectl, krew, kubectx, kubens, konfig, helm) ..."
 echo "===================================================================================================="
 echo ""
 

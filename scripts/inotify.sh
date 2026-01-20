@@ -7,7 +7,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SETUP_DIR="$(dirname "$SCRIPT_DIR")"
 
 echo "===================================================================================================="
-echo "== Increasing inotify watchers..."
+echo "== Increasing inotify watchers ..."
 echo "===================================================================================================="
 echo ""
 

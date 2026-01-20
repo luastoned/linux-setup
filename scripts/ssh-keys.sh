@@ -8,7 +8,7 @@ SETUP_DIR="$(dirname "$SCRIPT_DIR")"
 ASSETS_DIR="$SETUP_DIR/assets"
 
 echo "===================================================================================================="
-echo "== Installing SSH keys..."
+echo "== Installing SSH keys ..."
 echo "===================================================================================================="
 echo ""
 
@@ -22,7 +22,7 @@ fi
 echo ""
 ## copy authorized_keys
 if [ -f "$ASSETS_DIR/.authorized_keys" ]; then
-	echo "Adding authorized keys..."
+	echo "Adding authorized keys ..."
 	cat "$ASSETS_DIR/.authorized_keys" >> "$HOME/.ssh/authorized_keys"
 	chmod 600 "$HOME/.ssh/authorized_keys"
 	echo "Keys added successfully"
