@@ -2,51 +2,76 @@
 
 set -euo pipefail
 
-# Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SETUP_DIR="$(dirname "$SCRIPT_DIR")"
-ASSETS_DIR="$SETUP_DIR/assets"
+# shellcheck source=lib/common.sh
+source "$SCRIPT_DIR/../lib/common.sh"
 
-function isWSL {
-	grep -q "microsoft" /proc/version
+function installUserConfig {
+	local sourceFile="$1"
+	local targetFile="$2"
+	local label="$3"
+	local backupFile
+
+	if [ ! -f "$sourceFile" ]; then
+		echo "Warning: $label not found in assets, skipping..."
+		return 0
+	fi
+
+	if [ -f "$targetFile" ] && cmp -s -- "$sourceFile" "$targetFile"; then
+		echo "$label is already up to date"
+		return 0
+	fi
+
+	if [ -e "$targetFile" ]; then
+		backupFile="$targetFile.bak.$(timestamp)"
+		echo "Backing up $label to $backupFile..."
+		cp -- "$targetFile" "$backupFile"
+	fi
+
+	echo "Installing $label..."
+	install -m 0644 "$sourceFile" "$targetFile"
 }
 
-echo "===================================================================================================="
-echo "== Installing configuration files ..."
-echo "===================================================================================================="
-echo ""
+function installSystemConfig {
+	local sourceFile="$1"
+	local targetFile="$2"
+	local label="$3"
+	local backupFile
 
-## copy .nanorc
-if [ -f "$ASSETS_DIR/.nanorc" ]; then
-	echo "Installing .nanorc..."
-	cp "$ASSETS_DIR/.nanorc" ~/.nanorc
-else
-	echo "Warning: .nanorc not found in assets, skipping..."
-fi
-
-echo ""
-## copy .tmux.conf
-if [ -f "$ASSETS_DIR/.tmux.conf" ]; then
-	echo "Installing .tmux.conf..."
-	cp "$ASSETS_DIR/.tmux.conf" ~/.tmux.conf
-else
-	echo "Warning: .tmux.conf not found in assets, skipping..."
-fi
-
-echo ""
-## copy wsl.conf
-if isWSL; then
-	if [ -f "$ASSETS_DIR/wsl.conf" ]; then
-		echo "Installing wsl.conf (WSL detected)..."
-		sudo cp "$ASSETS_DIR/wsl.conf" /etc/wsl.conf
-	else
-		echo "Warning: wsl.conf not found in assets, skipping..."
+	if [ ! -f "$sourceFile" ]; then
+		echo "Warning: $label not found in assets, skipping..."
+		return 0
 	fi
+
+	if sudoCommand test -f "$targetFile" && sudoCommand cmp -s -- "$sourceFile" "$targetFile"; then
+		echo "$label is already up to date"
+		return 0
+	fi
+
+	if sudoCommand test -e "$targetFile"; then
+		backupFile="$targetFile.bak.$(timestamp)"
+		echo "Backing up $label to $backupFile..."
+		sudoCommand cp -- "$targetFile" "$backupFile"
+	fi
+
+	echo "Installing $label..."
+	sudoCommand install -m 0644 "$sourceFile" "$targetFile"
+}
+
+printBanner "Installing configuration files ..."
+blankLine
+
+installUserConfig "$LINUX_SETUP_ASSETS_DIR/.nanorc" "$HOME/.nanorc" ".nanorc"
+
+blankLine
+installUserConfig "$LINUX_SETUP_ASSETS_DIR/.tmux.conf" "$HOME/.tmux.conf" ".tmux.conf"
+
+blankLine
+if isWSL; then
+	installSystemConfig "$LINUX_SETUP_ASSETS_DIR/wsl.conf" /etc/wsl.conf "wsl.conf"
 else
 	echo "Non-WSL environment detected, skipping wsl.conf"
 fi
 
-echo ""
-echo "===================================================================================================="
-echo "== Configuration files installation complete!"
-echo "===================================================================================================="
+blankLine
+printBanner "Configuration files installation complete!"

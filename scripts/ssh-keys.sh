@@ -2,50 +2,95 @@
 
 set -euo pipefail
 
-# Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SETUP_DIR="$(dirname "$SCRIPT_DIR")"
-ASSETS_DIR="$SETUP_DIR/assets"
+# shellcheck source=lib/common.sh
+source "$SCRIPT_DIR/../lib/common.sh"
 
-echo "===================================================================================================="
-echo "== Installing SSH keys ..."
-echo "===================================================================================================="
-echo ""
+AUTHORIZED_KEYS_SOURCE="$LINUX_SETUP_ASSETS_DIR/.authorized_keys"
+AUTHORIZED_KEYS_TARGET="$HOME/.ssh/authorized_keys"
+SSHD_CONFIG_FILE="${SSHD_CONFIG_FILE:-/etc/ssh/sshd_config}"
+SSHD_BIN="${SSHD_BIN:-$(command -v sshd || true)}"
+tmpFile=""
 
-## ensure .ssh directory exists
-if [[ ! -d "$HOME/.ssh" ]]; then
-	echo "Creating .ssh directory..."
-	mkdir -p "$HOME/.ssh"
-	chmod 700 "$HOME/.ssh"
-fi
+function cleanup {
+	[ -z "$tmpFile" ] || rm -f -- "$tmpFile"
+}
 
-echo ""
-## copy authorized_keys
-if [ -f "$ASSETS_DIR/.authorized_keys" ]; then
+trap cleanup EXIT
+
+function updateSshdConfig {
+	local backupFile
+
+	if [ -z "$SSHD_BIN" ]; then
+		echo "Warning: sshd was not found; skipping SSH daemon configuration update."
+		return 0
+	fi
+
+	tmpFile="$(mktemp)"
+	sudoCommand cp -- "$SSHD_CONFIG_FILE" "$tmpFile"
+	sed -E --in-place 's/^([[:space:]]*)#[[:space:]]*(AuthorizedKeysFile[[:space:]].*)$/\1\2/' "$tmpFile"
+
+	if sudoCommand cmp -s -- "$SSHD_CONFIG_FILE" "$tmpFile"; then
+		echo "SSH daemon configuration is already up to date"
+		rm -f -- "$tmpFile"
+		tmpFile=""
+		return 0
+	fi
+
+	echo "Validating updated SSH daemon configuration..."
+	sudoCommand "$SSHD_BIN" -t -f "$tmpFile"
+
+	backupFile="$SSHD_CONFIG_FILE.bak.$(timestamp)"
+	echo "Backing up SSH daemon configuration to $backupFile..."
+	sudoCommand cp -- "$SSHD_CONFIG_FILE" "$backupFile"
+
+	if ! sudoCommand install -m 0644 "$tmpFile" "$SSHD_CONFIG_FILE"; then
+		echo "Failed to install SSH daemon configuration; restoring backup..." >&2
+		sudoCommand cp -- "$backupFile" "$SSHD_CONFIG_FILE"
+		return 1
+	fi
+
+	rm -f -- "$tmpFile"
+	tmpFile=""
+	echo "SSH configuration updated"
+}
+
+printBanner "Installing SSH keys ..."
+blankLine
+
+echo "Ensuring .ssh directory exists..."
+install -m 0700 -d "$HOME/.ssh"
+
+blankLine
+if [ -f "$AUTHORIZED_KEYS_SOURCE" ]; then
 	echo "Adding authorized keys ..."
-	cat "$ASSETS_DIR/.authorized_keys" >> "$HOME/.ssh/authorized_keys"
-	chmod 600 "$HOME/.ssh/authorized_keys"
+	touch "$AUTHORIZED_KEYS_TARGET"
+	chmod 600 "$AUTHORIZED_KEYS_TARGET"
+
+	while IFS= read -r key; do
+		[ -n "$key" ] || continue
+		if ! grep -qxF "$key" "$AUTHORIZED_KEYS_TARGET"; then
+			printf '%s\n' "$key" >>"$AUTHORIZED_KEYS_TARGET"
+		fi
+	done <"$AUTHORIZED_KEYS_SOURCE"
+
 	echo "Keys added successfully"
 else
 	echo "Warning: .authorized_keys not found in assets, skipping..."
 fi
 
-echo ""
-## patch ssh config
-if [ -f /etc/ssh/sshd_config ]; then
+blankLine
+if sudoCommand test -f "$SSHD_CONFIG_FILE"; then
 	echo "Updating SSH daemon configuration..."
-	sudo sed --in-place 's/#AuthorizedKeysFile/AuthorizedKeysFile/' /etc/ssh/sshd_config
-	echo "SSH configuration updated"
+	updateSshdConfig
 else
-	echo "Warning: /etc/ssh/sshd_config not found, skipping..."
+	echo "Warning: $SSHD_CONFIG_FILE not found, skipping..."
 fi
 
-echo ""
-echo "===================================================================================================="
-echo "== SSH keys installation complete!"
-echo "===================================================================================================="
-echo ""
+blankLine
+printBanner "SSH keys installation complete!"
+blankLine
 echo "To apply SSH configuration changes, restart SSH service:"
 echo "  sudo systemctl restart sshd"
-echo ""
+blankLine
 echo "===================================================================================================="

@@ -2,14 +2,14 @@
 
 set -euo pipefail
 
-# Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SETUP_DIR="$(dirname "$SCRIPT_DIR")"
+# shellcheck source=lib/common.sh
+source "$SCRIPT_DIR/../lib/common.sh"
 
-echo "===================================================================================================="
-echo "== Increasing inotify watchers ..."
-echo "===================================================================================================="
-echo ""
+SYSCTL_FILE="${SYSCTL_FILE:-/etc/sysctl.d/99-linux-setup-inotify.conf}"
+
+printBanner "Increasing inotify watchers ..."
+blankLine
 
 ## https://github.com/guard/listen/blob/master/README.md#increasing-the-amount-of-inotify-watchers
 ## https://github.com/fatso83/dotfiles/blob/master/utils/scripts/inotify-consumers
@@ -18,28 +18,23 @@ echo "Configuring inotify limits..."
 echo "  max_user_instances: 8192"
 echo "  max_user_watches: 1048576"
 echo "  max_queued_events: 2097152"
-echo ""
+blankLine
 
-# Check if already configured
-if grep -q "fs.inotify.max_user_instances" /etc/sysctl.conf; then
-	echo "inotify settings already exist in /etc/sysctl.conf, skipping..."
-else
-	echo "Adding inotify settings to /etc/sysctl.conf..."
-	echo "fs.inotify.max_user_instances=8192" | sudo tee -a /etc/sysctl.conf
-	echo "fs.inotify.max_user_watches=1048576" | sudo tee -a /etc/sysctl.conf
-	echo "fs.inotify.max_queued_events=2097152" | sudo tee -a /etc/sysctl.conf
-fi
+echo "Writing $SYSCTL_FILE..."
+sudoCommand tee "$SYSCTL_FILE" >/dev/null <<'EOF'
+fs.inotify.max_user_instances=8192
+fs.inotify.max_user_watches=1048576
+fs.inotify.max_queued_events=2097152
+EOF
 
-echo ""
+blankLine
 echo "Applying sysctl settings..."
-sudo sysctl -p
+sudoCommand sysctl --system
 
-echo ""
-echo "===================================================================================================="
-echo "== Inotify configuration complete!"
-echo "===================================================================================================="
-echo ""
+blankLine
+printBanner "Inotify configuration complete!"
+blankLine
 echo "Current inotify settings:"
 sysctl fs.inotify.max_user_instances fs.inotify.max_user_watches fs.inotify.max_queued_events
-echo ""
+blankLine
 echo "===================================================================================================="

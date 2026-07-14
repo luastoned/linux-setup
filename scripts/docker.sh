@@ -2,69 +2,71 @@
 
 set -euo pipefail
 
-# Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SETUP_DIR="$(dirname "$SCRIPT_DIR")"
-
-function isWSL {
-	grep -q "microsoft" /proc/version
-}
+# shellcheck source=lib/common.sh
+source "$SCRIPT_DIR/../lib/common.sh"
 
 if isWSL; then
-	echo "===================================================================================================="
-	echo "== WSL detected - skipping Docker installation"
-	echo "===================================================================================================="
-	echo ""
+	printBanner "WSL detected - skipping Docker installation"
+	blankLine
 	echo "Use Docker Desktop for Windows instead."
-	echo ""
+	blankLine
 	echo "===================================================================================================="
 	exit 0
 fi
 
-echo "===================================================================================================="
-echo "== Installing Docker ..."
-echo "===================================================================================================="
-echo ""
+COMPLETIONS_SCRIPT="$LINUX_SETUP_UTILITIES_DIR/write-shell-completions.sh"
+TARGET_USER="${SUDO_USER:-$USER}"
 
+printBanner "Installing Docker ..."
+blankLine
+echo "Installing dependencies..."
+aptUpdate
+installAptPackages ca-certificates curl
+
+blankLine
 echo "Removing old Docker versions..."
 for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do
-	sudo apt remove "$pkg" -y 2>/dev/null || true
+	sudoCommand apt remove "$pkg" -y 2>/dev/null || true
 done
 
-echo ""
+blankLine
 echo "Adding Docker's GPG key..."
-sudo install -m 0755 -d /etc/apt/keyrings
-sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-sudo chmod a+r /etc/apt/keyrings/docker.asc
+sudoCommand install -m 0755 -d /etc/apt/keyrings
+sudoCommand curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudoCommand chmod a+r /etc/apt/keyrings/docker.asc
 
-echo ""
+blankLine
 echo "Adding Docker repository..."
 ARCH="$(dpkg --print-architecture)"
 
+# shellcheck source=/dev/null
 . /etc/os-release
 UBUNTU_CODENAME="${UBUNTU_CODENAME:-$VERSION_CODENAME}"
 
-echo "deb [arch=$ARCH signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $UBUNTU_CODENAME stable" | sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
+echo "deb [arch=$ARCH signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $UBUNTU_CODENAME stable" | sudoCommand tee /etc/apt/sources.list.d/docker.list >/dev/null
 
-echo ""
+blankLine
 echo "Installing Docker packages..."
-sudo apt update
-sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+aptUpdate
+installAptPackages bash-completion docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-echo ""
+blankLine
 echo "Configuring Docker group..."
-sudo groupadd docker 2>/dev/null || true
-sudo usermod -aG docker "${USER}"
+sudoCommand groupadd docker 2>/dev/null || true
+sudoCommand usermod -aG docker "$TARGET_USER"
 
-echo ""
-bash "${SETUP_DIR}/utilities/docker-logs-rotation.sh"
+blankLine
+bash "$LINUX_SETUP_UTILITIES_DIR/docker-logs-rotation.sh"
 
-echo ""
-echo "===================================================================================================="
-echo "== Docker installation complete!"
-echo "===================================================================================================="
-echo ""
+blankLine
+echo "Writing Docker shell completion..."
+bash "$COMPLETIONS_SCRIPT" docker
+
+blankLine
+printBanner "Docker installation complete!"
+blankLine
 echo "To apply group changes, log out and log back in, or run:"
 echo "  newgrp docker"
-echo ""
+blankLine
 echo "===================================================================================================="

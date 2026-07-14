@@ -2,17 +2,15 @@
 
 set -euo pipefail
 
-# Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SETUP_DIR="$(dirname "$SCRIPT_DIR")"
+# shellcheck source=lib/common.sh
+source "$SCRIPT_DIR/../lib/common.sh"
 
-echo "===================================================================================================="
-echo "== Installing utilities ..."
-echo "===================================================================================================="
-echo ""
-
+printBanner "Installing utilities ..."
+blankLine
 echo "Installing essential utilities ..."
-sudo apt install \
+installAptPackages \
+	bash-completion \
 	bat \
 	build-essential \
 	cpuid \
@@ -36,6 +34,7 @@ sudo apt install \
 	rlwrap \
 	rsync \
 	shfmt \
+	shellcheck \
 	smartmontools \
 	socat \
 	tmux \
@@ -45,10 +44,11 @@ sudo apt install \
 	vim \
 	wget \
 	yq \
-	zip \
-	-y
+	zip
 
-echo ""
-echo "===================================================================================================="
-echo "== Utilities installation complete!"
-echo "===================================================================================================="
+blankLine
+echo "Installing Snitch port scanner..."
+curl -fsSL https://raw.githubusercontent.com/karol-broda/snitch/master/install.sh | sudoCommand bash
+
+blankLine
+printBanner "Utilities installation complete!"

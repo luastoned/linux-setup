@@ -2,27 +2,22 @@
 
 set -euo pipefail
 
-# Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SETUP_DIR="$(dirname "$SCRIPT_DIR")"
+# shellcheck source=lib/common.sh
+source "$SCRIPT_DIR/../lib/common.sh"
 
-echo "===================================================================================================="
-echo "== Running system update and upgrade ..."
-echo "===================================================================================================="
-echo ""
-
+printBanner "Running system update and upgrade ..."
+blankLine
 echo "Updating package lists ..."
-sudo apt update
+aptUpdate
 
-echo ""
+blankLine
 echo "Upgrading installed packages ..."
-sudo apt upgrade -y
+sudoCommand apt upgrade -y
 
-echo ""
+blankLine
 echo "Removing unused packages ..."
-sudo apt autoremove -y
+sudoCommand apt autoremove -y
 
-echo ""
-echo "===================================================================================================="
-echo "== System update complete!"
-echo "===================================================================================================="
+blankLine
+printBanner "System update complete!"

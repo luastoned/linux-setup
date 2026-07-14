@@ -2,48 +2,45 @@
 
 set -euo pipefail
 
-# Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SETUP_DIR="$(dirname "$SCRIPT_DIR")"
+# shellcheck source=lib/common.sh
+source "$SCRIPT_DIR/../lib/common.sh"
 
-echo "===================================================================================================="
-echo "== Installing Node.js (via NVM) ..."
-echo "===================================================================================================="
-echo ""
+# https://nubjs.com/
+# curl -fsSL https://nubjs.com/install.sh | bash
 
-function isCommand() {
-	command -v "$1" >/dev/null 2>&1
-}
+printBanner "Installing Node.js (via NVM) ..."
+blankLine
 
 function sourceNVM() {
 	export NVM_DIR="$HOME/.nvm"
+	# shellcheck source=/dev/null
 	[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 }
 
 ## dependencies
 echo "Installing dependencies..."
-sudo apt install jq -y
+aptUpdate
+installAptPackages curl jq
 
-echo ""
+blankLine
+sourceNVM
+
 # Install nvm if not present
-if ! isCommand nvm; then
+if ! commandExists nvm; then
 	echo "Installing NVM..."
 	NVM_VERSION="$(curl -fsSL https://api.github.com/repos/nvm-sh/nvm/releases/latest | jq --raw-output '.tag_name')"
 	curl -fsSL "https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh" | bash
+	sourceNVM
 else
 	echo "NVM is already installed"
 fi
 
-# Source nvm to make it available in this script
-sourceNVM
+blankLine
+printBanner "NVM installation complete!"
+blankLine
 
-echo ""
-echo "===================================================================================================="
-echo "== NVM installation complete!"
-echo "===================================================================================================="
-echo ""
-
-if ! isCommand node; then
+if ! commandExists node; then
 	echo "To install Node.js, run:"
 	echo "  source ~/.bashrc"
 	echo "  nvm install --lts"
@@ -52,9 +49,9 @@ else
 	echo "Node.js is already installed: $(node --version)"
 fi
 
-echo ""
+blankLine
 
-if ! isCommand yarn; then
+if ! commandExists yarn; then
 	echo "To install Yarn, run:"
 	echo "  corepack enable"
 	echo "  yarn set version berry"
@@ -62,5 +59,5 @@ else
 	echo "Yarn is already installed: $(yarn --version)"
 fi
 
-echo ""
+blankLine
 echo "===================================================================================================="
