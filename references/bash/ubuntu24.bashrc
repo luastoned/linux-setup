@@ -1,4 +1,4 @@
-# ~/.bashrc: executed by bash(1) for non-login shells.
+# Ubuntu 24.04 ~/.bashrc reference: retained for comparison, not installed by linux-setup.
 # see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
 # for examples
 

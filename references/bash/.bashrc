@@ -1,4 +1,4 @@
-# ~/.bashrc: executed by bash(1) for non-login shells.
+# Legacy ~/.bashrc reference: retained for comparison, not installed by linux-setup.
 
 ################################################################
 ## Early Exit for Non-Interactive Shells
@@ -230,6 +230,7 @@ export DOCKER_HOST=unix:///var/run/docker.sock
 ################################################################
 
 export NVM_DIR="$HOME/.nvm"
+export NVM_SYMLINK_CURRENT=true
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
 
