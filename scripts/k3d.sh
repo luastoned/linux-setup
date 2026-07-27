@@ -8,6 +8,13 @@ source "$SCRIPT_DIR/../lib/common.sh"
 
 COMPLETIONS_SCRIPT="$LINUX_SETUP_UTILITIES_DIR/write-shell-completions.sh"
 KUBERNETES_STABLE_URL="https://dl.k8s.io/release/stable.txt"
+tmpDir=""
+
+function cleanup {
+	[ -z "$tmpDir" ] || rm -rf -- "$tmpDir"
+}
+
+trap cleanup EXIT
 
 printBanner "Installing Kubernetes tools (k3d, kubectl, krew, kubectx, kubens, konfig, helm) ..."
 blankLine
@@ -30,11 +37,21 @@ echo "Using Kubernetes $KUBERNETES_VERSION from the $KUBERNETES_MINOR package re
 
 blankLine
 echo "Adding Kubernetes repository..."
-sudoCommand install -m 0755 -d /etc/apt/keyrings
-curl -fsSL "$KUBERNETES_REPO_URL/Release.key" | sudoCommand gpg --dearmor --yes -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-sudoCommand chmod 0644 /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] $KUBERNETES_REPO_URL/ /" | sudoCommand tee /etc/apt/sources.list.d/kubernetes.list >/dev/null
-sudoCommand chmod 0644 /etc/apt/sources.list.d/kubernetes.list
+tmpDir="$(mktemp -d)"
+curl -fsSL "$KUBERNETES_REPO_URL/Release.key" -o "$tmpDir/kubernetes-release.key"
+gpg --dearmor --yes --output "$tmpDir/kubernetes-apt-keyring.gpg" "$tmpDir/kubernetes-release.key"
+installSystemFile \
+	"$tmpDir/kubernetes-apt-keyring.gpg" \
+	/etc/apt/keyrings/kubernetes-apt-keyring.gpg \
+	0644 \
+	"Kubernetes repository key"
+printf 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] %s/ /\n' \
+	"$KUBERNETES_REPO_URL" >"$tmpDir/kubernetes.list"
+installSystemFile \
+	"$tmpDir/kubernetes.list" \
+	/etc/apt/sources.list.d/kubernetes.list \
+	0644 \
+	"Kubernetes apt repository"
 
 blankLine
 echo "Installing kubectl..."

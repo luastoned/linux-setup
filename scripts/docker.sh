@@ -17,6 +17,13 @@ fi
 
 COMPLETIONS_SCRIPT="$LINUX_SETUP_UTILITIES_DIR/write-shell-completions.sh"
 TARGET_USER="${SUDO_USER:-$USER}"
+tmpDir=""
+
+function cleanup {
+	[ -z "$tmpDir" ] || rm -rf -- "$tmpDir"
+}
+
+trap cleanup EXIT
 
 printBanner "Installing Docker ..."
 blankLine
@@ -32,9 +39,9 @@ done
 
 blankLine
 echo "Adding Docker's GPG key..."
-sudoCommand install -m 0755 -d /etc/apt/keyrings
-sudoCommand curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-sudoCommand chmod a+r /etc/apt/keyrings/docker.asc
+tmpDir="$(mktemp -d)"
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o "$tmpDir/docker.asc"
+installSystemFile "$tmpDir/docker.asc" /etc/apt/keyrings/docker.asc 0644 "Docker repository key"
 
 blankLine
 echo "Adding Docker repository..."
@@ -44,7 +51,9 @@ ARCH="$(dpkg --print-architecture)"
 . /etc/os-release
 UBUNTU_CODENAME="${UBUNTU_CODENAME:-$VERSION_CODENAME}"
 
-echo "deb [arch=$ARCH signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $UBUNTU_CODENAME stable" | sudoCommand tee /etc/apt/sources.list.d/docker.list >/dev/null
+printf 'deb [arch=%s signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu %s stable\n' \
+	"$ARCH" "$UBUNTU_CODENAME" >"$tmpDir/docker.list"
+installSystemFile "$tmpDir/docker.list" /etc/apt/sources.list.d/docker.list 0644 "Docker apt repository"
 
 blankLine
 echo "Installing Docker packages..."
