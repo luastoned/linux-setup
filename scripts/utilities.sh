@@ -6,8 +6,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib/common.sh
 source "$SCRIPT_DIR/../lib/common.sh"
 
-SKIP_SNITCH="${SKIP_SNITCH:-0}"
-
 function installOptionalAptPackage {
 	local package="$1"
 	local description="$2"
@@ -65,14 +63,6 @@ installOptionalAptPackage yq "YAML processor"
 
 blankLine
 installOptionalAptPackage 7zip-rar "RAR codec for 7-Zip"
-
-blankLine
-if [[ "$SKIP_SNITCH" == 1 ]]; then
-	echo "Skipping Snitch port scanner installation (SKIP_SNITCH=1)."
-else
-	echo "Installing Snitch port scanner..."
-	curl -fsSL https://raw.githubusercontent.com/karol-broda/snitch/master/install.sh | sudoCommand bash
-fi
 
 blankLine
 printBanner "Utilities installation complete!"
