@@ -12,5 +12,5 @@ pageReporting=true           # Default true setting enables Windows to reclaim u
 # <size> entries must be size followed by unit, for example 8GB or 512MB
 
 [experimental]
-autoMemoryReclaim=dropcache  # disabled | gradual | dropcache
+autoMemoryReclaim=dropCache  # disabled | gradual | dropCache
 sparseVhd=true               # When set to true, any newly created VHD will be set to sparse automatically.

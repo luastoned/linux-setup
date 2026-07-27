@@ -9,3 +9,5 @@ are not installed by `setup.sh`.
   ConEmu's documentation site.
 - `wsl/.wslconfig` configures the Windows WSL host. Copy it manually to
   `%UserProfile%\.wslconfig`; it is not a Linux guest configuration file.
+  Its memory and processor values are examples to review for the host, not
+  portable defaults.
