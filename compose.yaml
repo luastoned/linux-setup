@@ -1,0 +1,28 @@
+name: linux-setup-tests
+
+x-ubuntu-test: &ubuntu-test
+  working_dir: /workspace
+  volumes:
+    - .:/workspace:ro
+  command:
+    - /bin/bash
+    - ./tests/container.sh
+
+services:
+  test-22:
+    <<: *ubuntu-test
+    image: ubuntu:22.04
+    environment:
+      EXPECTED_UBUNTU_VERSION: "22.04"
+
+  test-24:
+    <<: *ubuntu-test
+    image: ubuntu:24.04
+    environment:
+      EXPECTED_UBUNTU_VERSION: "24.04"
+
+  test-26:
+    <<: *ubuntu-test
+    image: ubuntu:26.04
+    environment:
+      EXPECTED_UBUNTU_VERSION: "26.04"
