@@ -17,6 +17,12 @@ if [ -s "$NVM_DIR/bash_completion" ]; then
 	source "$NVM_DIR/bash_completion"
 fi
 
-alias yup='yarn upgrade-interactive --latest'
-alias gup='yarn global upgrade-interactive --latest'
+if [ -d "$HOME/.nub/bin" ]; then
+	export PATH="$HOME/.nub/bin:$PATH"
+fi
+
+if [ -d "$HOME/.nub/node-shim" ]; then
+	export PATH="$HOME/.nub/node-shim:$PATH"
+fi
+
 alias pm2-update='pm2 update && pm2 restart all --update-env'
