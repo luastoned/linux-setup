@@ -80,6 +80,96 @@ HOME="$bashrcHome" XDG_CONFIG_HOME="$bashrcConfig" bash scripts/bashrc.sh >/dev/
 [[ "$firstLocalShellHash" == "$(fileHash "$bashrcConfig/dev-shell.local.bash")" ]]
 pass "persistent dev-shell local customization"
 
+shellBin="$TMP_ROOT/shell-bin"
+krewRoot="$TMP_ROOT/krew"
+archiveWork="$TMP_ROOT/archive-work"
+install -m 0755 -d "$shellBin" "$krewRoot/bin" "$archiveWork/input"
+for commandName in docker kubectl; do
+	printf '#!/bin/bash\nexit 0\n' >"$shellBin/$commandName"
+	chmod 0755 "$shellBin/$commandName"
+done
+for commandName in kubectl-ctx kubectl-ns; do
+	printf '#!/bin/bash\nexit 0\n' >"$krewRoot/bin/$commandName"
+	chmod 0755 "$krewRoot/bin/$commandName"
+done
+printf 'archive test\n' >"$archiveWork/input/file.txt"
+
+HOME="$bashrcHome" XDG_CONFIG_HOME="$bashrcConfig" KREW_ROOT="$krewRoot" \
+	PATH="$shellBin:$PATH" ARCHIVE_WORK="$archiveWork" TERM=xterm-256color \
+	bash --noprofile --norc -ic '
+		set -e
+		unset DOCKER_HOST
+		source "$XDG_CONFIG_HOME/dev-shell.bash"
+		source "$XDG_CONFIG_HOME/dev-shell.bash"
+
+		for aliasName in \
+			dc dcd dcl dcu dcp dcr dps \
+			gs gid gsw gsc grs ga gap gaa gc gcm gl \
+			kubectx kubens kgp kgd kgs \
+			memory ports public_ip; do
+			alias "$aliasName" >/dev/null
+		done
+
+		for functionName in \
+			dev_shell_confirm docker_remove_all_containers git_recursive wkgp \
+			sizes show_ssh edit_dev_shell extract pack nodemod_remove vscode_kill; do
+			declare -F "$functionName" >/dev/null
+		done
+
+		for aliasName in \
+			gp gco gsa gpp gmo list_size list_sort symlink \
+			check_ports1 check_ports2 check_ports_pid wanip \
+			pack_tar unpack_tar; do
+			if alias "$aliasName" >/dev/null 2>&1; then
+				exit 1
+			fi
+		done
+
+		for functionName in \
+			drm docker_cleanup_images docker_cleanup_system \
+			docker_remove_dangling_images docker_remove_exited_containers \
+			portainer dtop gout gbout free_ram; do
+			if declare -F "$functionName" >/dev/null; then
+				exit 1
+			fi
+		done
+
+		[[ "$(alias dcr)" != *--no-deps* ]]
+		[[ -z "${DOCKER_HOST+x}" ]]
+
+		krewPathCount=0
+		IFS=: read -r -a pathEntries <<<"$PATH"
+		for pathEntry in "${pathEntries[@]}"; do
+			if [ "$pathEntry" = "$KREW_ROOT/bin" ]; then
+				((krewPathCount += 1))
+			fi
+		done
+		[[ "$krewPathCount" -eq 1 ]]
+
+		cd "$ARCHIVE_WORK"
+		pack bundle.tar.gz input >/dev/null
+		if pack bundle.tar.gz input >/dev/null 2>&1; then
+			exit 1
+		fi
+		install -m 0755 -d extracted
+		cd extracted
+		extract ../bundle.tar.gz >/dev/null
+		cmp ../input/file.txt input/file.txt
+	' 2>/dev/null
+pass "managed shell helper contract"
+
+emptyKrewRoot="$TMP_ROOT/empty-krew"
+install -m 0755 -d "$emptyKrewRoot/bin"
+HOME="$bashrcHome" XDG_CONFIG_HOME="$bashrcConfig" KREW_ROOT="$emptyKrewRoot" \
+	PATH="$shellBin:$PATH" TERM=xterm-256color \
+	bash --noprofile --norc -ic '
+		source "$XDG_CONFIG_HOME/dev-shell.bash"
+		if alias kubectx >/dev/null 2>&1 || alias kubens >/dev/null 2>&1; then
+			exit 1
+		fi
+	' 2>/dev/null
+pass "conditional Kubernetes plugin aliases"
+
 printf '# local stale managed file\n' >"$bashrcConfig/dev-shell.node.bash"
 HOME="$bashrcHome" XDG_CONFIG_HOME="$bashrcConfig" bash scripts/bashrc.sh >/dev/null
 cmp -s assets/dev-shell/dev-shell.node.bash "$bashrcConfig/dev-shell.node.bash"

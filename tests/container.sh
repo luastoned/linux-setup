@@ -23,8 +23,10 @@ echo "Testing linux-setup on ${PRETTY_NAME}..."
 echo "Installing the packaged utilities module..."
 bash scripts/utilities.sh
 
-dpkg-query --show --showformat='${Status}\n' 7zip | grep -qxF "install ok installed"
-echo "PASS: required 7zip package is installed"
+for package in 7zip zstd; do
+	dpkg-query --show --showformat='${Status}\n' "$package" | grep -qxF "install ok installed"
+	echo "PASS: required $package package is installed"
+done
 
 for package in yq 7zip-rar; do
 	if apt-cache show "$package" >/dev/null 2>&1; then
