@@ -20,8 +20,8 @@ install -m 0755 -d "$HOME"
 cd "$ROOT_DIR"
 
 echo "Testing linux-setup on ${PRETTY_NAME}..."
-echo "Installing the utilities module without the remote Snitch installer..."
-SKIP_SNITCH=1 bash scripts/utilities.sh
+echo "Installing the packaged utilities module..."
+bash scripts/utilities.sh
 
 dpkg-query --show --showformat='${Status}\n' 7zip | grep -qxF "install ok installed"
 echo "PASS: required 7zip package is installed"
