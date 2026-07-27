@@ -24,7 +24,7 @@ if [ -r "${XDG_CONFIG_HOME:-$HOME/.config}/dev-shell.kube-ps1.sh" ]; then
 fi
 
 alias kubectx='kubectl ctx'
-alias kubns='kubectl ns'
+alias kubens='kubectl ns'
 alias kgp='kubectl get pods'
 alias kgd='kubectl get deploy'
 alias kgs='kubectl get svc'
