@@ -102,7 +102,7 @@ in `scripts/`.
 | Bash config      | `scripts/bashrc.sh`     | Yes     | Back up `~/.bashrc`, install dev shell config, write completions, and manage a source marker. |
 | Docker           | `scripts/docker.sh`     | Yes     | Install Docker CE on non-WSL systems and configure log rotation.     |
 | Node.js          | `scripts/node.sh`       | Yes     | Install NVM and print follow-up commands for Node.js and Yarn.       |
-| Utilities        | `scripts/utilities.sh`  | Yes     | Install common CLI tools and the Snitch port scanner.                |
+| Utilities        | `scripts/utilities.sh`  | Yes     | Install common CLI tools, 7-Zip, an optional RAR codec, and Snitch.  |
 | Config files     | `scripts/configs.sh`    | Yes     | Back up and install nano, tmux, and WSL config files from `assets/`. |
 | Inotify limits   | `scripts/inotify.sh`    | Yes     | Raise inotify watcher, instance, and queue limits.                   |
 | Nginx disable    | `scripts/stop-nginx.sh` | No      | Stop nginx and disable it from starting on boot.                     |
@@ -201,6 +201,7 @@ scripts before running them on shared, production, or security-sensitive hosts.
 
 - Several scripts install packages and write to `/etc`, so they require `sudo`.
 - Some installers download remote scripts or files with `curl`.
+- The utilities module skips the optional `7zip-rar` codec when it is unavailable from the enabled repositories.
 - The Bash setup adds or updates a managed source block in `~/.bashrc` after creating a backup.
 - The config setup creates timestamped backups before replacing `~/.nanorc`, `~/.tmux.conf`, or `/etc/wsl.conf`.
 - The SSH key setup appends keys from this repository to `authorized_keys`.
