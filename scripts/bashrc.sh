@@ -29,16 +29,6 @@ fi
 EOF
 }
 
-function backupBashrc {
-	if [ -f "$BASHRC_FILE" ]; then
-		echo "Backing up existing .bashrc..."
-		cp "$BASHRC_FILE" "$HOME/.bashrc_backup_$(timestamp)"
-	else
-		echo "Creating .bashrc..."
-		touch "$BASHRC_FILE"
-	fi
-}
-
 function validateBashrcMarkers {
 	[ -f "$BASHRC_FILE" ] || return 0
 
@@ -72,10 +62,16 @@ function validateBashrcMarkers {
 }
 
 function updateBashrcMarker {
+	local bashrcMode=0644
 	local block
+	local inputFile=/dev/null
 
 	block="$(managedBlock)"
 	tmpFile="$(mktemp)"
+	if [ -f "$BASHRC_FILE" ]; then
+		inputFile="$BASHRC_FILE"
+		bashrcMode="$(stat -c '%a' "$BASHRC_FILE")"
+	fi
 
 	awk \
 		-v start="$MARKER_START" \
@@ -107,10 +103,10 @@ function updateBashrcMarker {
 				print block
 			}
 		}
-	' "$BASHRC_FILE" >"$tmpFile"
+	' "$inputFile" >"$tmpFile"
 
-	chmod --reference="$BASHRC_FILE" "$tmpFile" 2>/dev/null || true
-	mv "$tmpFile" "$BASHRC_FILE"
+	installUserFile "$tmpFile" "$BASHRC_FILE" "$bashrcMode" ".bashrc"
+	rm -f -- "$tmpFile"
 	tmpFile=""
 }
 
@@ -121,8 +117,7 @@ function installDevShellFiles {
 	for sourceFile in "$LINUX_SETUP_ASSETS_DIR"/dev-shell/*.bash; do
 		[ -e "$sourceFile" ] || continue
 		targetFile="$CONFIG_DIR/$(basename "$sourceFile")"
-		echo "Installing $(basename "$sourceFile")..."
-		install -m 0644 "$sourceFile" "$targetFile"
+		installUserFile "$sourceFile" "$targetFile" 0644 "$(basename "$sourceFile")"
 	done
 }
 
@@ -144,9 +139,6 @@ installDevShellFiles
 blankLine
 echo "Writing shell completions for installed tools..."
 bash "$COMPLETIONS_SCRIPT"
-
-blankLine
-backupBashrc
 
 blankLine
 echo "Updating .bashrc linux-setup marker..."

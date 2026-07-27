@@ -10,52 +10,26 @@ function installUserConfig {
 	local sourceFile="$1"
 	local targetFile="$2"
 	local label="$3"
-	local backupFile
 
 	if [ ! -f "$sourceFile" ]; then
 		echo "Warning: $label not found in assets, skipping..."
 		return 0
 	fi
 
-	if [ -f "$targetFile" ] && cmp -s -- "$sourceFile" "$targetFile"; then
-		echo "$label is already up to date"
-		return 0
-	fi
-
-	if [ -e "$targetFile" ]; then
-		backupFile="$targetFile.bak.$(timestamp)"
-		echo "Backing up $label to $backupFile..."
-		cp -- "$targetFile" "$backupFile"
-	fi
-
-	echo "Installing $label..."
-	install -m 0644 "$sourceFile" "$targetFile"
+	installUserFile "$sourceFile" "$targetFile" 0644 "$label"
 }
 
 function installSystemConfig {
 	local sourceFile="$1"
 	local targetFile="$2"
 	local label="$3"
-	local backupFile
 
 	if [ ! -f "$sourceFile" ]; then
 		echo "Warning: $label not found in assets, skipping..."
 		return 0
 	fi
 
-	if sudoCommand test -f "$targetFile" && sudoCommand cmp -s -- "$sourceFile" "$targetFile"; then
-		echo "$label is already up to date"
-		return 0
-	fi
-
-	if sudoCommand test -e "$targetFile"; then
-		backupFile="$targetFile.bak.$(timestamp)"
-		echo "Backing up $label to $backupFile..."
-		sudoCommand cp -- "$targetFile" "$backupFile"
-	fi
-
-	echo "Installing $label..."
-	sudoCommand install -m 0644 "$sourceFile" "$targetFile"
+	installSystemFile "$sourceFile" "$targetFile" 0644 "$label"
 }
 
 printBanner "Installing configuration files ..."
