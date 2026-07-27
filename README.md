@@ -103,7 +103,7 @@ in `scripts/`.
 | Docker           | `scripts/docker.sh`     | Yes     | Install Docker CE on non-WSL systems and configure log rotation.     |
 | Node.js          | `scripts/node.sh`       | Yes     | Install NVM without modifying shell profile files.                   |
 | Nub              | `scripts/nub.sh`        | No      | Install the Nub Node.js toolkit without modifying shell profiles.    |
-| Utilities        | `scripts/utilities.sh`  | Yes     | Install common CLI tools, 7-Zip, and optional yq and RAR packages.   |
+| Utilities        | `scripts/utilities.sh`  | Yes     | Install common CLI tools, 7-Zip, zstd, and optional yq and RAR packages. |
 | Config files     | `scripts/configs.sh`    | Yes     | Back up and install nano, tmux, and WSL config files from `assets/`. |
 | Inotify limits   | `scripts/inotify.sh`    | Yes     | Raise inotify watcher, instance, and queue limits.                   |
 | Nginx disable    | `scripts/stop-nginx.sh` | No      | Stop nginx and disable it from starting on boot.                     |
@@ -157,6 +157,25 @@ Git completion is handled by the distro `bash-completion` package and its
 packaged Git completion file. The dev shell also sources Git's packaged prompt
 helper when it is available, so no downloaded Git completion or prompt files are
 installed.
+
+### Managed shell helpers
+
+The managed shell keeps a deliberately small command surface:
+
+- Git: `gs`, `gid`, `gsw`, `gsc`, `grs`, `ga`, `gap`, `gaa`, `gc`, `gcm`,
+  `gl`, and `git-recursive`.
+- Docker: `dc`, `dcd`, `dcl`, `dcu`, `dcp`, `dcr`, `dps`, and the prompted
+  `docker_remove_all_containers` function.
+- Kubernetes: `kgp`, `kgd`, `kgs`, and `wkgp`. The `kubectx` and `kubens`
+  aliases are only defined when their matching krew plugins are installed.
+- General utilities: `sizes`, `memory`, `top_cpu`, `top_ram`, `ports`,
+  `public_ip`, `extract`, `pack`, `show-ssh`, `nodemod_list`,
+  `nodemod_remove`, and `vscode_kill`.
+
+`pack` selects the format from the archive extension and refuses to overwrite
+an existing archive. Destructive helpers show their target and ask for
+confirmation. Put any compatibility aliases or personal shortcuts in
+`dev-shell.local.bash`.
 
 ## 🗂️ References
 
