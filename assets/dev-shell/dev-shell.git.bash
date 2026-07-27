@@ -21,34 +21,49 @@ fi
 ################################################################
 
 alias gs='git status'
-alias gp='git pull'
-alias gco='git checkout'
-alias gsa='git status && git add . && git status'
-alias gpp='git pull && git push'
 alias gid='git rev-parse --short HEAD'
-alias gmo='git fetch origin && git merge origin/development'
+alias gsw='git switch'
+alias gsc='git switch --create'
+alias grs='git restore'
+alias ga='git add'
+alias gap='git add --patch'
+alias gaa='git add --all'
+alias gc='git commit'
+alias gcm='git commit --message'
+alias gl='git pull --ff-only'
 
-function gc {
-	git commit -m "$1"
-}
-
-function gout {
-	git checkout "$1"
-}
-
-function gbout {
-	git checkout -b "$1"
-}
+if declare -F __git_complete >/dev/null 2>&1; then
+	__git_complete gs _git_status
+	__git_complete gsw _git_switch
+	__git_complete gsc _git_switch
+	__git_complete grs _git_restore
+	__git_complete ga _git_add
+	__git_complete gap _git_add
+	__git_complete gaa _git_add
+	__git_complete gc _git_commit
+	__git_complete gcm _git_commit
+	__git_complete gl _git_pull
+fi
 
 function git_recursive {
-	local gitDir
-	local repo
+	if [ $# -eq 0 ]; then
+		echo "Usage: git-recursive <git arguments...>"
+		return 1
+	fi
 
-	find . -type d -name .git -prune | while IFS= read -r gitDir; do
-		repo="${gitDir%/.git}"
+	local gitMarker
+	local repo
+	local status=0
+
+	while IFS= read -r -d '' gitMarker; do
+		repo="${gitMarker%/.git}"
 		printf '\n%s\n' "$repo"
-		(cd "$repo" && git "$@")
-	done
+		if ! git -C "$repo" "$@"; then
+			status=1
+		fi
+	done < <(find . -name .git \( -type d -o -type f \) -prune -print0)
+
+	return "$status"
 }
 
 alias git-recursive='git_recursive'
