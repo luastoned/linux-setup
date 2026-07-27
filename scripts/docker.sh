@@ -57,7 +57,7 @@ sudoCommand groupadd docker 2>/dev/null || true
 sudoCommand usermod -aG docker "$TARGET_USER"
 
 blankLine
-bash "$LINUX_SETUP_UTILITIES_DIR/docker-logs-rotation.sh"
+bash "$LINUX_SETUP_UTILITIES_DIR/docker-logs-rotation.sh" --restart
 
 blankLine
 echo "Writing Docker shell completion..."

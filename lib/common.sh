@@ -227,3 +227,25 @@ function installSystemFile {
 	# shellcheck disable=SC2034 # Shared file-install state is consumed by calling scripts.
 	INSTALL_FILE_CHANGED=1
 }
+
+function restoreSystemFile {
+	local targetFile="$1"
+	local backupFile="${2:-}"
+	local targetDir
+	local tmpFile
+
+	if [ -z "$backupFile" ]; then
+		echo "Removing newly installed $targetFile..."
+		sudoCommand rm -f -- "$targetFile"
+		return 0
+	fi
+
+	echo "Restoring $targetFile from $backupFile..."
+	targetDir="$(dirname "$targetFile")"
+	tmpFile="$(sudoCommand mktemp "$targetDir/.linux-setup.restore.$(basename "$targetFile").XXXXXX")"
+	if ! sudoCommand cp -a -- "$backupFile" "$tmpFile"; then
+		sudoCommand rm -f -- "$tmpFile"
+		return 1
+	fi
+	sudoCommand mv -- "$tmpFile" "$targetFile"
+}
