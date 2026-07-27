@@ -20,11 +20,11 @@ if [ -s "$NVM_DIR/bash_completion" ]; then
 fi
 
 if [ -d "$HOME/.nub/bin" ]; then
-	export PATH="$HOME/.nub/bin:$PATH"
+	dev_shell_prepend_path "$HOME/.nub/bin"
 fi
 
 if [ -d "$HOME/.nub/node-shim" ]; then
-	export PATH="$HOME/.nub/node-shim:$PATH"
+	dev_shell_prepend_path "$HOME/.nub/node-shim"
 fi
 
 alias pm2-update='pm2 update && pm2 restart all --update-env'

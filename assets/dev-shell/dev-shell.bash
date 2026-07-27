@@ -12,6 +12,24 @@ function dev_shell_command_exists {
 	command -v "$1" >/dev/null 2>&1
 }
 
+# shellcheck disable=SC2317 # Called by conditionally sourced Node and Kubernetes assets.
+function dev_shell_prepend_path {
+	local directory="$1"
+
+	case ":$PATH:" in
+	*":$directory:"*) ;;
+	*) export PATH="$directory:$PATH" ;;
+	esac
+}
+
+function dev_shell_confirm {
+	local prompt="${1:-Continue?}"
+	local reply
+
+	read -r -p "$prompt (y/N): " reply
+	[[ "$reply" =~ ^[Yy]([Ee][Ss])?$ ]]
+}
+
 function dev_shell_source {
 	local name="$1"
 	local file="$DEV_SHELL_CONFIG_DIR/dev-shell.$name.bash"
@@ -65,5 +83,6 @@ dev_shell_is_rpi && dev_shell_source rpi
 dev_shell_source prompt
 dev_shell_source local
 
+unset -f dev_shell_prepend_path
 unset -f dev_shell_source
 unset DEV_SHELL_CONFIG_DIR
