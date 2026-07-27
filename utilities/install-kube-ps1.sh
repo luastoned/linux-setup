@@ -8,7 +8,7 @@ source "$SCRIPT_DIR/../lib/common.sh"
 
 CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}"
 KUBE_PS1_FILE="$CONFIG_DIR/dev-shell.kube-ps1.sh"
-KUBE_PS1_URL="https://raw.githubusercontent.com/jonmosco/kube-ps1/master/kube-ps1.sh"
+KUBE_PS1_URL="${KUBE_PS1_URL:-https://raw.githubusercontent.com/jonmosco/kube-ps1/master/kube-ps1.sh}"
 forceInstall=0
 tmpFile=""
 
@@ -66,6 +66,8 @@ tmpFile="$(mktemp "$CONFIG_DIR/dev-shell.kube-ps1.sh.tmp.XXXXXX")"
 
 echo "Installing kube-ps1 to $KUBE_PS1_FILE..."
 curl -fsSL -o "$tmpFile" "$KUBE_PS1_URL"
-mv -- "$tmpFile" "$KUBE_PS1_FILE"
+bash -n "$tmpFile"
+installUserFile "$tmpFile" "$KUBE_PS1_FILE" 0644 "kube-ps1"
+rm -f -- "$tmpFile"
 tmpFile=""
 echo "kube-ps1 installation complete."

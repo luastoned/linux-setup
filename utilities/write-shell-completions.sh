@@ -34,9 +34,14 @@ function writeCompletion {
 	tmpFile="$(mktemp "$CONFIG_DIR/dev-shell.$commandName-completion.bash.tmp.XXXXXX")"
 
 	if "$commandName" completion bash >"$tmpFile"; then
-		mv -- "$tmpFile" "$outputFile"
+		if [ -f "$outputFile" ] && cmp -s -- "$tmpFile" "$outputFile"; then
+			rm -f -- "$tmpFile"
+			echo "$commandName completion is already up to date"
+		else
+			mv -- "$tmpFile" "$outputFile"
+			echo "Wrote $commandName completion to $outputFile"
+		fi
 		tmpFile=""
-		echo "Wrote $commandName completion to $outputFile"
 	else
 		rm -f -- "$tmpFile"
 		tmpFile=""
