@@ -27,8 +27,14 @@ if grep -q 'stop-nginx.sh' <<<"$defaultDryRun"; then
 	echo "Default dry run unexpectedly selected nginx" >&2
 	exit 1
 fi
+if grep -q 'nub.sh' <<<"$defaultDryRun"; then
+	echo "Default dry run unexpectedly selected Nub" >&2
+	exit 1
+fi
 onlyDryRun="$(./setup.sh --dry-run --only nginx)"
 grep -q 'stop-nginx.sh' <<<"$onlyDryRun"
+nubDryRun="$(./setup.sh --dry-run --only nub)"
+grep -q 'nub.sh' <<<"$nubDryRun"
 pass "setup module selection"
 
 bashrcHome="$TMP_ROOT/bashrc-home"

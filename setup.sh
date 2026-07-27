@@ -24,7 +24,7 @@ Options:
   -h, --help         Show this help message.
 
 Modules:
-  update, bashrc, docker, node, utilities, configs, inotify, nginx, k3d, ssh-keys
+  update, bashrc, docker, node, nub, utilities, configs, inotify, nginx, k3d, ssh-keys
 
 Examples:
   ./setup.sh
@@ -41,6 +41,7 @@ function normalizeModule {
 	bashrc | shell) printf '%s\n' "bashrc" ;;
 	docker) printf '%s\n' "docker" ;;
 	node | nodejs) printf '%s\n' "node" ;;
+	nub) printf '%s\n' "nub" ;;
 	utilities | utils) printf '%s\n' "utilities" ;;
 	configs | config) printf '%s\n' "configs" ;;
 	inotify) printf '%s\n' "inotify" ;;
@@ -57,6 +58,7 @@ function moduleScript {
 	bashrc) printf '%s\n' "$SCRIPT_DIR/bashrc.sh" ;;
 	docker) printf '%s\n' "$SCRIPT_DIR/docker.sh" ;;
 	node) printf '%s\n' "$SCRIPT_DIR/node.sh" ;;
+	nub) printf '%s\n' "$SCRIPT_DIR/nub.sh" ;;
 	utilities) printf '%s\n' "$SCRIPT_DIR/utilities.sh" ;;
 	configs) printf '%s\n' "$SCRIPT_DIR/configs.sh" ;;
 	inotify) printf '%s\n' "$SCRIPT_DIR/inotify.sh" ;;
@@ -72,7 +74,8 @@ function moduleDescription {
 	update) printf '%s\n' "System update and upgrade" ;;
 	bashrc) printf '%s\n' "Bash configuration" ;;
 	docker) printf '%s\n' "Docker" ;;
-	node) printf '%s\n' "Node.js and Yarn" ;;
+	node) printf '%s\n' "NVM for Node.js" ;;
+	nub) printf '%s\n' "Nub Node.js toolkit" ;;
 	utilities) printf '%s\n' "Common utilities" ;;
 	configs) printf '%s\n' "Nano, tmux, and WSL configs" ;;
 	inotify) printf '%s\n' "Inotify limits" ;;
@@ -202,12 +205,13 @@ function promptModuleNoDefault {
 	fi
 }
 
-MODULES=(update bashrc docker node utilities configs inotify nginx k3d ssh-keys)
+MODULES=(update bashrc docker node nub utilities configs inotify nginx k3d ssh-keys)
 declare -A runModules=(
 	[update]=1
 	[bashrc]=1
 	[docker]=1
 	[node]=1
+	[nub]=0
 	[utilities]=1
 	[configs]=1
 	[inotify]=1
@@ -305,7 +309,8 @@ if [[ "$skipQuestions" == 0 ]]; then
 	promptModuleYesDefault "Run apt update and upgrade?" update
 	promptModuleYesDefault "Install .bashrc?" bashrc
 	promptModuleYesDefault "Install Docker?" docker
-	promptModuleYesDefault "Install Node & Yarn?" node
+	promptModuleYesDefault "Install NVM for Node.js?" node
+	promptModuleNoDefault "Install Nub alongside or instead of NVM?" nub
 	promptModuleYesDefault "Install Utilities (git, curl, tmux, ...)?" utilities
 	promptModuleNoDefault "Install k3d, kubectl, krew, kubectx, kubens, konfig, helm?" k3d
 	promptModuleYesDefault "Update nano / tmux / (wsl) configs?" configs
