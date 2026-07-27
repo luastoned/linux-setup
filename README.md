@@ -32,7 +32,7 @@
 ## ✨ Features
 
 - 🚀 **One-command bootstrap** — Run an interactive setup flow for a fresh Ubuntu or WSL development environment.
-- 🧰 **Common developer tooling** — Install Docker, Node.js via NVM, CLI utilities, shell helpers, and optional Kubernetes tools.
+- 🧰 **Common developer tooling** — Install Docker, Node.js via NVM, optional Nub, CLI utilities, shell helpers, and optional Kubernetes tools.
 - 🖥️ **Shell-first workflow** — Source a managed dev shell file from `~/.bashrc`, load `bash-completion`, and use generated completions from `~/.config`.
 - 🐳 **Docker defaults** — Install Docker CE on non-WSL systems and configure JSON log rotation.
 - 🪟 **WSL aware** — Skip native Docker installation under WSL and install WSL-specific config only when WSL is detected.
@@ -67,8 +67,8 @@ To skip prompts and use the default selection:
 ```
 
 `--force` is kept as an alias for `--yes`. The default selection runs most setup
-steps, while nginx disabling, Kubernetes tools, and SSH key installation remain
-disabled unless selected interactively.
+steps, while Nub, nginx disabling, Kubernetes tools, and SSH key installation
+remain disabled unless selected interactively.
 
 Preview the selected modules without changing the system:
 
@@ -88,8 +88,8 @@ Run the default selection except specific modules:
 ./setup.sh --skip bashrc,nginx
 ```
 
-Available module names are `update`, `bashrc`, `docker`, `node`, `utilities`,
-`configs`, `inotify`, `nginx`, `k3d`, and `ssh-keys`.
+Available module names are `update`, `bashrc`, `docker`, `node`, `nub`,
+`utilities`, `configs`, `inotify`, `nginx`, `k3d`, and `ssh-keys`.
 
 ## 📚 Modules
 
@@ -101,8 +101,9 @@ in `scripts/`.
 | System update    | `scripts/update.sh`     | Yes     | Run `apt update`, `apt upgrade`, and `apt autoremove`.               |
 | Bash config      | `scripts/bashrc.sh`     | Yes     | Back up `~/.bashrc`, install dev shell config, write completions, and manage a source marker. |
 | Docker           | `scripts/docker.sh`     | Yes     | Install Docker CE on non-WSL systems and configure log rotation.     |
-| Node.js          | `scripts/node.sh`       | Yes     | Install NVM and print follow-up commands for Node.js and Yarn.       |
-| Utilities        | `scripts/utilities.sh`  | Yes     | Install common CLI tools, 7-Zip, optional yq and RAR packages, and Snitch. |
+| Node.js          | `scripts/node.sh`       | Yes     | Install NVM without modifying shell profile files.                   |
+| Nub              | `scripts/nub.sh`        | No      | Install the Nub Node.js toolkit without modifying shell profiles.    |
+| Utilities        | `scripts/utilities.sh`  | Yes     | Install common CLI tools, 7-Zip, and optional yq and RAR packages.   |
 | Config files     | `scripts/configs.sh`    | Yes     | Back up and install nano, tmux, and WSL config files from `assets/`. |
 | Inotify limits   | `scripts/inotify.sh`    | Yes     | Raise inotify watcher, instance, and queue limits.                   |
 | Nginx disable    | `scripts/stop-nginx.sh` | No      | Stop nginx and disable it from starting on boot.                     |
@@ -115,7 +116,15 @@ Run a single module directly when you only need one part of the setup:
 ./scripts/utilities.sh
 ./scripts/docker.sh
 ./scripts/node.sh
+./scripts/nub.sh
 ```
+
+NVM remains the conservative default. Nub is an opt-in companion: it can use a
+compatible Node already available through NVM, or provision a pinned stock Node
+into its own cache when running through `nub`. See the
+[Nub Node manager documentation](https://nubjs.com/docs/node). The managed
+Node shell asset adds `~/.nub/bin` when present; it also honors Nub's optional
+`~/.nub/node-shim` without forcing the shim on NVM users.
 
 ## 🧩 Assets
 
@@ -132,11 +141,11 @@ scripts.
 | Generated completions     | Written as `~/.config/dev-shell.*-completion.bash` |
 | Optional kube-ps1 prompt  | Written as `~/.config/dev-shell.kube-ps1.sh`       |
 
-`scripts/bashrc.sh` creates a timestamped backup of the current `~/.bashrc`
-before inserting or updating the managed linux-setup source block. The installed
-`dev-shell.bash` file is a small orchestrator that sources focused files for
-history, completions, Git, utilities, Node.js, Docker, Kubernetes, WSL,
-Raspberry Pi, prompt, and optional local overrides.
+`scripts/bashrc.sh` backs up a changed `~/.bashrc` before inserting or updating
+the managed linux-setup source block. Changed managed dev-shell files are backed
+up as well. The installed `dev-shell.bash` file is a small orchestrator that
+sources focused files for history, completions, Git, utilities, Node.js,
+Docker, Kubernetes, WSL, Raspberry Pi, prompt, and optional local overrides.
 
 Use the `config` shell alias to edit `~/.config/dev-shell.local.bash`. Local
 overrides are sourced last and are not overwritten when the managed shell files
@@ -157,6 +166,12 @@ For WSL, `assets/wsl.conf` configures the Linux guest and is installed to
 `/etc/wsl.conf`. To configure the Windows host, manually copy
 `references/wsl/.wslconfig` to `%UserProfile%\.wslconfig`.
 
+The guest config is intentionally opinionated: Windows drives mount at `/c`,
+the Windows PATH is not appended, systemd is enabled, and the WSL default user
+is `root`. Review or remove the `[user]` section before installation if the
+distribution's normal non-root default should be preserved. The asset is never
+installed on native Ubuntu.
+
 ## 🛠️ Utilities
 
 Additional helper scripts live in `utilities/`.
@@ -168,6 +183,7 @@ Additional helper scripts live in `utilities/`.
 | `utilities/docker-logs-rotation.sh`  | Write Docker daemon log rotation settings.   |
 | `utilities/write-shell-completions.sh` | Generate Bash completions for Docker, kubectl, Helm, and k3d. |
 | `utilities/install-kube-ps1.sh`      | Optionally install the jonmosco/kube-ps1 prompt helper when Kubernetes is detected. |
+| `utilities/install-snitch.sh`        | Explicitly confirm and run the upstream Snitch installer. |
 | `utilities/reset-iptables.sh`        | Confirm and reset iptables rules, with a non-mutating dry run. |
 | `utilities/ssh-keygen.sh`            | Generate ED25519, RSA, or both SSH key types. |
 
@@ -176,6 +192,7 @@ Run helpers directly:
 ```bash
 ./utilities/ssh-keygen.sh --help
 ./utilities/docker-logs-rotation.sh
+./utilities/install-snitch.sh
 ./utilities/reset-iptables.sh --dry-run
 ./utilities/write-shell-completions.sh
 ```
@@ -183,11 +200,14 @@ Run helpers directly:
 Docker log helpers use `/var/lib/docker/containers` by default. Override
 `DOCKER_CONTAINERS_DIR` for testing or non-standard Docker data roots.
 `docker-logs-rotation.sh` writes `/etc/docker/daemon.json` by default and
-supports `DOCKER_CONFIG_DIR`, `LOG_MAX_SIZE`, and `LOG_MAX_FILE`.
+supports `DOCKER_CONFIG_DIR`, `LOG_MAX_SIZE`, `LOG_MAX_FILE`, and
+`DOCKERD_BIN`. It validates candidate JSON, uses `dockerd --validate` when
+available, and only creates a backup when content changes. Pass `--restart` to
+restart `docker.service`; a failed restart restores the previous config.
 
-Set `SKIP_SNITCH=1` when running `scripts/utilities.sh` to install the packaged
-utilities without executing the remote Snitch installer. This is primarily
-useful for automated package compatibility tests.
+Snitch is not part of the default utilities module. Its standalone installer
+requires confirmation and warns that the upstream installer does not provide
+an independently verified checksum.
 
 Install the optional Kubernetes prompt helper after Kubernetes tooling or a
 kubeconfig exists:
@@ -197,6 +217,11 @@ kubeconfig exists:
 ```
 
 Use `--force` to install kube-ps1 even when Kubernetes is not detected.
+`KUBE_PS1_URL` can override its download source for testing.
+
+For non-applying inotify tests, point `SYSCTL_FILE` at a temporary path and set
+`APPLY_SYSCTL=0`. Kubernetes binary destinations can be overridden with
+`K3D_INSTALL_DIR` and `HELM_INSTALL_DIR`.
 
 ## ⚠️ Safety Notes
 
@@ -204,11 +229,23 @@ This repository is intended for personal development machines. Review the
 scripts before running them on shared, production, or security-sensitive hosts.
 
 - Several scripts install packages and write to `/etc`, so they require `sudo`.
-- Some installers download remote scripts or files with `curl`.
+- Managed user and system files are compared first. Changed files are copied to
+  collision-safe `*.bak.<timestamp>` paths and replacements are staged beside
+  the target before an atomic move.
+- This backup policy covers Bash/dev-shell assets, nano/tmux/WSL config,
+  `authorized_keys`, sshd config, inotify sysctl config, Docker daemon config,
+  apt repository/keyring files, kube-ps1, k3d, and Helm.
+- Generated completions are reproducible and replaced only when content changes,
+  without accumulating backups. Package-managed files and newly created
+  tool-owned caches are left to their package or tool manager.
+- Intentional destructive utilities, such as Docker log clearing and iptables
+  reset, use confirmation instead of backing up potentially large or transient
+  state.
+- NVM and Nub installers are downloaded to temporary files, syntax checked, and
+  prevented from editing shell profiles. Nub's installer verifies its release
+  checksum; k3d, krew, and Helm release artifacts are verified before install.
 - The utilities module skips optional `yq` and `7zip-rar` packages when they are unavailable from the enabled repositories.
-- The Bash setup adds or updates a managed source block in `~/.bashrc` after creating a backup.
-- The config setup creates timestamped backups before replacing `~/.nanorc`, `~/.tmux.conf`, or `/etc/wsl.conf`.
-- The SSH key setup appends keys from this repository to `authorized_keys`.
+- The SSH key setup merges keys from this repository into `authorized_keys`.
 - The optional nginx step disables nginx startup.
 - The iptables reset utility flushes firewall rules and requires confirmation unless `--yes` is used.
 - Docker installation is skipped automatically on WSL.
@@ -259,9 +296,9 @@ done
 ```
 
 Each service bind-mounts the repository read-only and installs packages only
-inside its disposable container. The test skips the remote Snitch installer,
-verifies required `7zip` and optional `yq`/`7zip-rar` behavior, and then runs
-syntax, formatting, ShellCheck, and smoke checks.
+inside its disposable container. The test verifies required `7zip` and optional
+`yq`/`7zip-rar` behavior, then runs syntax, formatting, ShellCheck, and smoke
+checks.
 
 These containers validate Ubuntu userland and package compatibility. They do
 not emulate WSL or validate systemd services, kernel settings, firewall
