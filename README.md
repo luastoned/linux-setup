@@ -102,7 +102,7 @@ in `scripts/`.
 | Bash config      | `scripts/bashrc.sh`     | Yes     | Back up `~/.bashrc`, install dev shell config, write completions, and manage a source marker. |
 | Docker           | `scripts/docker.sh`     | Yes     | Install Docker CE on non-WSL systems and configure log rotation.     |
 | Node.js          | `scripts/node.sh`       | Yes     | Install NVM and print follow-up commands for Node.js and Yarn.       |
-| Utilities        | `scripts/utilities.sh`  | Yes     | Install common CLI tools, 7-Zip, an optional RAR codec, and Snitch.  |
+| Utilities        | `scripts/utilities.sh`  | Yes     | Install common CLI tools, 7-Zip, optional yq and RAR packages, and Snitch. |
 | Config files     | `scripts/configs.sh`    | Yes     | Back up and install nano, tmux, and WSL config files from `assets/`. |
 | Inotify limits   | `scripts/inotify.sh`    | Yes     | Raise inotify watcher, instance, and queue limits.                   |
 | Nginx disable    | `scripts/stop-nginx.sh` | No      | Stop nginx and disable it from starting on boot.                     |
@@ -185,6 +185,10 @@ Docker log helpers use `/var/lib/docker/containers` by default. Override
 `docker-logs-rotation.sh` writes `/etc/docker/daemon.json` by default and
 supports `DOCKER_CONFIG_DIR`, `LOG_MAX_SIZE`, and `LOG_MAX_FILE`.
 
+Set `SKIP_SNITCH=1` when running `scripts/utilities.sh` to install the packaged
+utilities without executing the remote Snitch installer. This is primarily
+useful for automated package compatibility tests.
+
 Install the optional Kubernetes prompt helper after Kubernetes tooling or a
 kubeconfig exists:
 
@@ -201,7 +205,7 @@ scripts before running them on shared, production, or security-sensitive hosts.
 
 - Several scripts install packages and write to `/etc`, so they require `sudo`.
 - Some installers download remote scripts or files with `curl`.
-- The utilities module skips the optional `7zip-rar` codec when it is unavailable from the enabled repositories.
+- The utilities module skips optional `yq` and `7zip-rar` packages when they are unavailable from the enabled repositories.
 - The Bash setup adds or updates a managed source block in `~/.bashrc` after creating a backup.
 - The config setup creates timestamped backups before replacing `~/.nanorc`, `~/.tmux.conf`, or `/etc/wsl.conf`.
 - The SSH key setup appends keys from this repository to `authorized_keys`.
@@ -234,6 +238,34 @@ Run the non-mutating and temp-path smoke tests:
 ```bash
 ./tests/smoke.sh
 ```
+
+### Ubuntu Container Matrix
+
+Use Docker Compose to run the package installer and repository checks against
+the supported Ubuntu LTS releases:
+
+```bash
+docker compose run --rm test-22
+docker compose run --rm test-24
+docker compose run --rm test-26
+```
+
+Run the complete matrix sequentially:
+
+```bash
+for version in 22 24 26; do
+	docker compose run --rm "test-$version"
+done
+```
+
+Each service bind-mounts the repository read-only and installs packages only
+inside its disposable container. The test skips the remote Snitch installer,
+verifies required `7zip` and optional `yq`/`7zip-rar` behavior, and then runs
+syntax, formatting, ShellCheck, and smoke checks.
+
+These containers validate Ubuntu userland and package compatibility. They do
+not emulate WSL or validate systemd services, kernel settings, firewall
+changes, or a running Docker daemon.
 
 ## 📄 License
 
