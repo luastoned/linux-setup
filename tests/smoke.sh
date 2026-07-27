@@ -69,6 +69,14 @@ HOME="$bashrcHome" XDG_CONFIG_HOME="$bashrcConfig" bash scripts/bashrc.sh >/dev/
 [[ -f "$bashrcConfig/dev-shell.local.bash" ]]
 pass "persistent dev-shell local override"
 
+printf '# local stale managed file\n' >"$bashrcConfig/dev-shell.node.bash"
+HOME="$bashrcHome" XDG_CONFIG_HOME="$bashrcConfig" bash scripts/bashrc.sh >/dev/null
+cmp -s assets/dev-shell/dev-shell.node.bash "$bashrcConfig/dev-shell.node.bash"
+[[ "$(find "$bashrcConfig" -maxdepth 1 -name 'dev-shell.node.bash.bak.*' | wc -l)" -eq 1 ]]
+HOME="$bashrcHome" XDG_CONFIG_HOME="$bashrcConfig" bash scripts/bashrc.sh >/dev/null
+[[ "$(find "$bashrcConfig" -maxdepth 1 -name 'dev-shell.node.bash.bak.*' | wc -l)" -eq 1 ]]
+pass "managed dev-shell backup and idempotence"
+
 configHome="$TMP_ROOT/config-home"
 install -m 0755 -d "$configHome"
 printf 'old nano config\n' >"$configHome/.nanorc"
@@ -81,17 +89,23 @@ cmp -s assets/.tmux.conf "$configHome/.tmux.conf"
 HOME="$configHome" bash scripts/configs.sh >/dev/null
 [[ "$(find "$configHome" -maxdepth 1 -name '.nanorc.bak.*' | wc -l)" -eq 1 ]]
 [[ "$(find "$configHome" -maxdepth 1 -name '.tmux.conf.bak.*' | wc -l)" -eq 1 ]]
+printf 'another old nano config\n' >"$configHome/.nanorc"
+HOME="$configHome" bash scripts/configs.sh >/dev/null
+[[ "$(find "$configHome" -maxdepth 1 -name '.nanorc.bak.*' | wc -l)" -eq 2 ]]
 pass "user config backup and idempotence"
 
 sshHome="$TMP_ROOT/ssh-home"
 sshdConfig="$TMP_ROOT/sshd_config"
-install -m 0755 -d "$sshHome"
+install -m 0755 -d "$sshHome/.ssh"
+printf 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAITest personal-key\n' >"$sshHome/.ssh/authorized_keys"
 printf '#AuthorizedKeysFile .ssh/authorized_keys\n' >"$sshdConfig"
 HOME="$sshHome" SSHD_CONFIG_FILE="$sshdConfig" SSHD_BIN=/bin/true bash scripts/ssh-keys.sh >/dev/null
 grep -qx 'AuthorizedKeysFile .ssh/authorized_keys' "$sshdConfig"
 [[ "$(find "$TMP_ROOT" -maxdepth 1 -name 'sshd_config.bak.*' | wc -l)" -eq 1 ]]
+[[ "$(find "$sshHome/.ssh" -maxdepth 1 -name 'authorized_keys.bak.*' | wc -l)" -eq 1 ]]
 HOME="$sshHome" SSHD_CONFIG_FILE="$sshdConfig" SSHD_BIN=/bin/true bash scripts/ssh-keys.sh >/dev/null
 [[ "$(find "$TMP_ROOT" -maxdepth 1 -name 'sshd_config.bak.*' | wc -l)" -eq 1 ]]
+[[ "$(find "$sshHome/.ssh" -maxdepth 1 -name 'authorized_keys.bak.*' | wc -l)" -eq 1 ]]
 pass "SSH config validation and idempotence"
 
 invalidSshdConfig="$TMP_ROOT/invalid_sshd_config"
@@ -119,10 +133,38 @@ if command -v jq >/dev/null 2>&1; then
 		and .["log-opts"]["max-file"] == "5"
 	' "$dockerConfig/daemon.json" >/dev/null
 	[[ "$(find "$dockerConfig" -maxdepth 1 -name 'daemon.json.bak.*' | wc -l)" -eq 1 ]]
-	pass "Docker daemon JSON merge"
+	DOCKER_CONFIG_DIR="$dockerConfig" LOG_MAX_SIZE=25m LOG_MAX_FILE=5 \
+		bash utilities/docker-logs-rotation.sh >/dev/null
+	[[ "$(find "$dockerConfig" -maxdepth 1 -name 'daemon.json.bak.*' | wc -l)" -eq 1 ]]
+	pass "Docker daemon JSON merge and idempotence"
 else
 	echo "SKIP: Docker daemon JSON merge (jq not installed)"
 fi
+
+inotifyFile="$TMP_ROOT/99-linux-setup-inotify.conf"
+printf 'fs.inotify.max_user_watches=123\n' >"$inotifyFile"
+SYSCTL_FILE="$inotifyFile" APPLY_SYSCTL=0 bash scripts/inotify.sh >/dev/null
+grep -qx 'fs.inotify.max_user_instances=8192' "$inotifyFile"
+grep -qx 'fs.inotify.max_user_watches=1048576' "$inotifyFile"
+grep -qx 'fs.inotify.max_queued_events=2097152' "$inotifyFile"
+[[ "$(find "$TMP_ROOT" -maxdepth 1 -name '99-linux-setup-inotify.conf.bak.*' | wc -l)" -eq 1 ]]
+SYSCTL_FILE="$inotifyFile" APPLY_SYSCTL=0 bash scripts/inotify.sh >/dev/null
+[[ "$(find "$TMP_ROOT" -maxdepth 1 -name '99-linux-setup-inotify.conf.bak.*' | wc -l)" -eq 1 ]]
+pass "inotify config backup and no-apply test path"
+
+kubePs1Config="$TMP_ROOT/kube-ps1-config"
+kubePs1Source="$TMP_ROOT/kube-ps1-source.sh"
+install -m 0755 -d "$kubePs1Config"
+printf '# old kube prompt\n' >"$kubePs1Config/dev-shell.kube-ps1.sh"
+printf '# test kube prompt\nfunction kube_ps1 { printf test; }\n' >"$kubePs1Source"
+XDG_CONFIG_HOME="$kubePs1Config" KUBE_PS1_URL="file://$kubePs1Source" \
+	bash utilities/install-kube-ps1.sh --force >/dev/null
+cmp -s "$kubePs1Source" "$kubePs1Config/dev-shell.kube-ps1.sh"
+[[ "$(find "$kubePs1Config" -maxdepth 1 -name 'dev-shell.kube-ps1.sh.bak.*' | wc -l)" -eq 1 ]]
+XDG_CONFIG_HOME="$kubePs1Config" KUBE_PS1_URL="file://$kubePs1Source" \
+	bash utilities/install-kube-ps1.sh --force >/dev/null
+[[ "$(find "$kubePs1Config" -maxdepth 1 -name 'dev-shell.kube-ps1.sh.bak.*' | wc -l)" -eq 1 ]]
+pass "kube-ps1 validation, backup, and idempotence"
 
 iptablesDryRun="$(bash utilities/reset-iptables.sh --dry-run)"
 grep -q '\[dry-run\].*iptables.*--flush' <<<"$iptablesDryRun"
