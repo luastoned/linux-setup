@@ -63,14 +63,17 @@ function extract {
 	*.tar.gz | *.tgz) tar xzf "$archive" ;;
 	*.tar.xz | *.txz) tar xJf "$archive" ;;
 	*.bz2) bunzip2 "$archive" ;;
-	*.rar) rar x "$archive" ;;
+	*.rar) 7z x -- "$archive" ;;
 	*.gz) gunzip "$archive" ;;
 	*.tar) tar xf "$archive" ;;
 	*.zip) unzip "$archive" ;;
 	*.Z) uncompress "$archive" ;;
 	*.7z) 7z x "$archive" ;;
 	*.xz) xz -d "$archive" ;;
-	*) echo "'$archive' cannot be extracted via extract()" ;;
+	*)
+		echo "'$archive' cannot be extracted via extract()"
+		return 1
+		;;
 	esac
 }
 
