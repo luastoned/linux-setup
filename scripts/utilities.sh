@@ -56,7 +56,8 @@ installAptPackages \
 	unzip \
 	vim \
 	wget \
-	zip
+	zip \
+	zstd
 
 blankLine
 installOptionalAptPackage yq "YAML processor"
