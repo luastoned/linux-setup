@@ -1,6 +1,7 @@
 # dev-shell.bash
 #
-# Personal interactive shell customizations managed by linux-setup.
+# Managed by linux-setup; changes may be replaced on the next setup run.
+# Put personal customizations in dev-shell.local.bash.
 # Keep this file sourced from ~/.bashrc instead of replacing ~/.bashrc outright.
 
 [[ $- == *i* ]] || return 0
@@ -46,7 +47,8 @@ function dev_shell_has_kubernetes {
 function dev_shell_has_node {
 	dev_shell_command_exists node ||
 		dev_shell_command_exists yarn ||
-		[ -s "$HOME/.nvm/nvm.sh" ]
+		[ -s "$HOME/.nvm/nvm.sh" ] ||
+		[ -x "$HOME/.nub/bin/nub" ]
 }
 
 dev_shell_source history

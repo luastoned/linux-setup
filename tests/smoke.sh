@@ -43,12 +43,16 @@ install -m 0755 -d "$bashrcHome" "$bashrcConfig"
 printf '# personal bashrc\nexport EXAMPLE=1\n' >"$bashrcHome/.bashrc"
 HOME="$bashrcHome" XDG_CONFIG_HOME="$bashrcConfig" bash scripts/bashrc.sh >/dev/null
 firstBashrcHash="$(fileHash "$bashrcHome/.bashrc")"
+[[ -f "$bashrcConfig/dev-shell.local.bash" ]]
+printf '\nalias local-only=\"printf local-only\"\n' >>"$bashrcConfig/dev-shell.local.bash"
+firstLocalShellHash="$(fileHash "$bashrcConfig/dev-shell.local.bash")"
 HOME="$bashrcHome" XDG_CONFIG_HOME="$bashrcConfig" bash scripts/bashrc.sh >/dev/null
 secondBashrcHash="$(fileHash "$bashrcHome/.bashrc")"
 [[ "$firstBashrcHash" == "$secondBashrcHash" ]]
+[[ "$firstLocalShellHash" == "$(fileHash "$bashrcConfig/dev-shell.local.bash")" ]]
 [[ "$(grep -c '^# >>> linux-setup$' "$bashrcHome/.bashrc")" -eq 1 ]]
 [[ "$(grep -c '^# <<< linux-setup$' "$bashrcHome/.bashrc")" -eq 1 ]]
-pass "bashrc marker idempotence"
+pass "bashrc marker and local shell idempotence"
 
 malformedHome="$TMP_ROOT/malformed-home"
 malformedConfig="$TMP_ROOT/malformed-config"
@@ -67,13 +71,14 @@ HOME="$bashrcHome" XDG_CONFIG_HOME="$bashrcConfig" EDITOR=touch TERM=xterm-256co
 	bash --noprofile --norc -ic '
 		source "$XDG_CONFIG_HOME/dev-shell.bash"
 		alias config >/dev/null
+		alias local-only >/dev/null
 		if alias conf >/dev/null 2>&1; then exit 1; fi
 		edit_dev_shell
 	' 2>/dev/null
 [[ -f "$bashrcConfig/dev-shell.local.bash" ]]
 HOME="$bashrcHome" XDG_CONFIG_HOME="$bashrcConfig" bash scripts/bashrc.sh >/dev/null
-[[ -f "$bashrcConfig/dev-shell.local.bash" ]]
-pass "persistent dev-shell local override"
+[[ "$firstLocalShellHash" == "$(fileHash "$bashrcConfig/dev-shell.local.bash")" ]]
+pass "persistent dev-shell local customization"
 
 printf '# local stale managed file\n' >"$bashrcConfig/dev-shell.node.bash"
 HOME="$bashrcHome" XDG_CONFIG_HOME="$bashrcConfig" bash scripts/bashrc.sh >/dev/null

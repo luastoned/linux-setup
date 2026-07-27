@@ -9,6 +9,8 @@ source "$SCRIPT_DIR/../lib/common.sh"
 COMPLETIONS_SCRIPT="$LINUX_SETUP_UTILITIES_DIR/write-shell-completions.sh"
 CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}"
 BASHRC_FILE="$HOME/.bashrc"
+LOCAL_SHELL_FILE="$CONFIG_DIR/dev-shell.local.bash"
+LOCAL_SHELL_TEMPLATE="$LINUX_SETUP_ASSETS_DIR/dev-shell/dev-shell.local.bash"
 MARKER_START="# >>> linux-setup"
 MARKER_END="# <<< linux-setup"
 tmpFile=""
@@ -116,9 +118,19 @@ function installDevShellFiles {
 
 	for sourceFile in "$LINUX_SETUP_ASSETS_DIR"/dev-shell/*.bash; do
 		[ -e "$sourceFile" ] || continue
+		[ "$sourceFile" != "$LOCAL_SHELL_TEMPLATE" ] || continue
 		targetFile="$CONFIG_DIR/$(basename "$sourceFile")"
 		installUserFile "$sourceFile" "$targetFile" 0644 "$(basename "$sourceFile")"
 	done
+}
+
+function createLocalShellFile {
+	if pathExists "$LOCAL_SHELL_FILE"; then
+		echo "Preserving existing dev-shell.local.bash"
+		return 0
+	fi
+
+	installUserFile "$LOCAL_SHELL_TEMPLATE" "$LOCAL_SHELL_FILE" 0644 "dev-shell.local.bash"
 }
 
 printBanner "Installing dev shell config and extensions ..."
@@ -135,6 +147,9 @@ install -m 0755 -d "$CONFIG_DIR"
 
 blankLine
 installDevShellFiles
+
+blankLine
+createLocalShellFile
 
 blankLine
 echo "Writing shell completions for installed tools..."

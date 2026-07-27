@@ -133,7 +133,8 @@ scripts.
 
 | Asset                     | Destination                                        |
 | ------------------------- | -------------------------------------------------- |
-| `assets/dev-shell/*.bash` | `~/.config/dev-shell*.bash`                        |
+| Managed `assets/dev-shell/*.bash` | `~/.config/dev-shell*.bash`                |
+| `assets/dev-shell/dev-shell.local.bash` | Created once as `~/.config/dev-shell.local.bash` |
 | `assets/.nanorc`          | `~/.nanorc`                                        |
 | `assets/.tmux.conf`       | `~/.tmux.conf`                                     |
 | `assets/wsl.conf`         | `/etc/wsl.conf` on WSL                             |
@@ -147,9 +148,10 @@ up as well. The installed `dev-shell.bash` file is a small orchestrator that
 sources focused files for history, completions, Git, utilities, Node.js,
 Docker, Kubernetes, WSL, Raspberry Pi, prompt, and optional local overrides.
 
-Use the `config` shell alias to edit `~/.config/dev-shell.local.bash`. Local
-overrides are sourced last and are not overwritten when the managed shell files
-are reinstalled.
+Use the `config` shell alias to edit `~/.config/dev-shell.local.bash`. This file
+is created from a commented template only when absent, is sourced last, and is
+never overwritten by setup. Put personal aliases, functions, exports, and
+prompt changes there instead of editing managed `dev-shell.*.bash` files.
 
 Git completion is handled by the distro `bash-completion` package and its
 packaged Git completion file. The dev shell also sources Git's packaged prompt
@@ -235,6 +237,8 @@ scripts before running them on shared, production, or security-sensitive hosts.
 - This backup policy covers Bash/dev-shell assets, nano/tmux/WSL config,
   `authorized_keys`, sshd config, inotify sysctl config, Docker daemon config,
   apt repository/keyring files, kube-ps1, k3d, and Helm.
+- `dev-shell.local.bash` is user-owned: setup creates it only when missing and
+  never replaces or backs it up.
 - Generated completions are reproducible and replaced only when content changes,
   without accumulating backups. Package-managed files and newly created
   tool-owned caches are left to their package or tool manager.

@@ -1,4 +1,6 @@
 # shellcheck shell=bash
+# Managed by linux-setup; changes may be replaced on the next setup run.
+# Put personal customizations in dev-shell.local.bash.
 
 ################################################################
 ## Bash Completion
